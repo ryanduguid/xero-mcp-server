@@ -71,6 +71,20 @@ describe("parseAmount", () => {
 });
 
 describe("assessTrialBalanceIntegrity", () => {
+  it.each([
+    { rows: [headerRow(["Anything"])] },
+    { rows: [headerRow()] },
+    report([]),
+    { rows: [headerRow(), accountRow("Cash", "1", "", "1", "")] },
+    {
+      rows: [headerRow(), { rowType: "Section", rows: [
+        { ...accountRow("Cash", "1", "", "1", ""), rowType: "Unexpected" },
+      ] }],
+    },
+  ])("BLOCKs incomplete or unsupported report shapes: %j", (payload) => {
+    expect(assessTrialBalanceIntegrity(payload).status).toBe("BLOCKED");
+  });
+
   it("PASSes 0.1 + 0.2 against 0.3 (no IEEE float)", () => {
     const result = assessTrialBalanceIntegrity(
       report([

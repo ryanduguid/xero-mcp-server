@@ -247,11 +247,17 @@ function flattenAndTotal(report: TrialBalanceReport): Totals | { error: string }
       if ("error" in header) {
         return header;
       }
+      const missing = REQUIRED_COLUMNS.filter((name) => !header.includes(name));
+      if (missing.length > 0) {
+        return {
+          error: `report is missing expected columns (${missing.join(", ")}). The API shape may have changed, or this is not a trial balance report`,
+        };
+      }
       titles = header;
       continue;
     }
     if (rowTypeName(row) !== "Section") {
-      continue;
+      return { error: `unsupported top-level row type: ${rowTypeName(row)}` };
     }
     const section = shown(row.title ?? "");
     const where = `section "${section}"`;
@@ -263,20 +269,17 @@ function flattenAndTotal(report: TrialBalanceReport): Totals | { error: string }
       return { error: "report has account rows before a Header, or is not a trial balance report" };
     }
     const headerTitlesNow: string[] = titles;
-    const missing = REQUIRED_COLUMNS.filter((name) => !headerTitlesNow.includes(name));
-    if (missing.length > 0) {
-      return {
-        error: `report is missing expected columns (${missing.join(", ")}). The API shape may have changed, or this is not a trial balance report`,
-      };
-    }
     const debitIdx = headerTitlesNow.indexOf("Debit");
     const creditIdx = headerTitlesNow.indexOf("Credit");
     const ytdDebitIdx = headerTitlesNow.indexOf("YTD Debit");
     const ytdCreditIdx = headerTitlesNow.indexOf("YTD Credit");
 
     for (const child of inner) {
-      if (rowTypeName(child) !== "Row") {
+      if (rowTypeName(child) === "SummaryRow") {
         continue;
+      }
+      if (rowTypeName(child) !== "Row") {
+        return { error: `unsupported row type in ${where}: ${rowTypeName(child)}` };
       }
       const cells = objectList(child.cells, where, "cells");
       if ("error" in cells) {
@@ -309,6 +312,9 @@ function flattenAndTotal(report: TrialBalanceReport): Totals | { error: string }
 
   if (!titles) {
     return { error: "report has no Header row. The API shape may have changed, or this is not a trial balance report" };
+  }
+  if (totals.accountRows === 0) {
+    return { error: "report has no account rows; trial balance integrity cannot be established" };
   }
   return totals;
 }
