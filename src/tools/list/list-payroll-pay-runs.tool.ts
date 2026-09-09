@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { listXeroPayrollAuPayRuns } from "../../handlers/list-xero-payroll-au-pay-runs.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { AuPayRun } from "../../types/payroll-au-types.js";
@@ -6,9 +7,12 @@ const ListPayrollPayRunsTool = CreateXeroTool(
   "list-payroll-pay-runs",
   `List Australian Payroll AU pay runs.
 Includes period dates, payment date, status, and wage/tax/super totals. Use list-payroll-payslips with a payRunID to see employees on a run. Australian organisations only. Requires payroll.payruns (or equivalent) scope.`,
-  {},
-  async () => {
-    const response = await listXeroPayrollAuPayRuns();
+  {
+    page: z.number().int().min(1).default(1)
+      .describe("Page number, with up to 100 pay runs per page"),
+  },
+  async ({ page }) => {
+    const response = await listXeroPayrollAuPayRuns(page);
 
     if (response.isError) {
       return {
@@ -27,7 +31,7 @@ Includes period dates, payment date, status, and wage/tax/super totals. Use list
       content: [
         {
           type: "text" as const,
-          text: `Found ${payRuns?.length || 0} pay runs:`,
+          text: `Found ${payRuns?.length || 0} pay runs on page ${page}.${payRuns?.length === 100 ? ` Request page ${page + 1} for more results.` : ""}`,
         },
         ...(payRuns?.map((payRun: AuPayRun) => ({
           type: "text" as const,

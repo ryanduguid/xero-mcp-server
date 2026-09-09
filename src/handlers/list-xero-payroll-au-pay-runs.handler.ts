@@ -5,7 +5,7 @@ import { assertAustralianPayroll } from "../helpers/get-payroll-region.js";
 import { AuPayRun } from "../types/payroll-au-types.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 
-async function getPayRuns(): Promise<AuPayRun[]> {
+async function getPayRuns(page: number): Promise<AuPayRun[]> {
   await assertAustralianPayroll("list-payroll-pay-runs");
 
   const payRuns = await xeroClient.payrollAUApi.getPayRuns(
@@ -13,18 +13,18 @@ async function getPayRuns(): Promise<AuPayRun[]> {
     undefined,
     undefined,
     undefined,
-    undefined,
+    page,
     getClientHeaders(),
   );
 
   return payRuns.body.payRuns ?? [];
 }
 
-export async function listXeroPayrollAuPayRuns(): Promise<
+export async function listXeroPayrollAuPayRuns(page = 1): Promise<
   XeroClientResponse<AuPayRun[]>
 > {
   try {
-    const payRuns = await getPayRuns();
+    const payRuns = await getPayRuns(page);
     return {
       result: payRuns,
       isError: false,
