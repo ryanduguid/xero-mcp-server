@@ -14,7 +14,7 @@ const lineItemSchema = z.object({
 const UpdateQuoteTool = CreateXeroTool(
   "update-quote",
   "Update a quote in Xero. Only works on draft quotes.\
-  All line items must be provided. Any line items not provided will be removed. Including existing line items.\
+  When changing line items, provide the complete final list, including unchanged existing items. Omitted items will be removed. Omit lineItems to keep all existing items.\
   Do not modify line items that have not been specified by the user. \
  When a quote is updated, a deep link to the quote in Xero is returned. \
  This deep link can be used to view the quote in Xero directly. \
@@ -22,7 +22,7 @@ const UpdateQuoteTool = CreateXeroTool(
   {
     quoteId: z.string(),
     lineItems: z.array(lineItemSchema).optional().describe(
-      "All line items must be provided. Any line items not provided will be removed. Including existing line items. \
+      "When changing line items, provide the complete final list, including unchanged existing items. Omitted items will be removed. Omit lineItems to keep all existing items. \
       Do not modify line items that have not been specified by the user",
     ),
     reference: z.string().optional(),

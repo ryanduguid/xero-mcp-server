@@ -1,7 +1,7 @@
 import asyncio
 import os
 import shutil
-from agents import Agent, Runner, gen_trace_id, trace
+from agents import Agent, Runner, RunConfig, gen_trace_id, trace
 from agents.mcp import MCPServer, MCPServerStdio
 
 async def run(mcp_server: MCPServer):
@@ -15,7 +15,10 @@ async def run(mcp_server: MCPServer):
     # Get message from user input
     message = input("Enter your message for Xero (e.g., 'List my contacts in Xero'): ")
     print(f"Running: {message}")
-    result = await Runner.run(starting_agent=agent, input=message)
+    result = await Runner.run(
+        starting_agent=agent, input=message,
+        run_config=RunConfig(trace_include_sensitive_data=False),
+    )
     print(result.final_output)
 
 async def main():      

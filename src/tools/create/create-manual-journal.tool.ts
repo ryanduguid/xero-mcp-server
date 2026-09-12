@@ -36,6 +36,7 @@ const CreateManualJournalTool = CreateXeroTool(
           // TODO: TODO: tracking can be added here
         }),
       )
+      .min(2)
       .describe(
         "The manualJournalLines element must contain at least two individual manualJournalLine sub-elements",
       ),
@@ -104,10 +105,8 @@ const CreateManualJournalTool = CreateXeroTool(
               manualJournal.status
                 ? `Status: ${manualJournal.status}`
                 : "No status",
-              manualJournal.journalLines
-                ? manualJournal.journalLines.map((line) => ({
-                    type: "text" as const,
-                    text: [
+              manualJournal.journalLines?.length
+                ? manualJournal.journalLines.map((line) => [
                       `Line Amount: ${line.lineAmount}`,
                       line.accountCode
                         ? `Account Code: ${line.accountCode}`
@@ -121,9 +120,9 @@ const CreateManualJournalTool = CreateXeroTool(
                       `Tax Amount: ${line.taxAmount}`,
                     ]
                       .filter(Boolean)
-                      .join("\n"),
-                  }))
-                : [{ type: "text" as const, text: "No journal lines" }],
+                      .join("\n")
+                  ).join("\n\n")
+                : "No journal lines",
               `Show on Cash Basis Reports: ${manualJournal.showOnCashBasisReports}`,
               deepLink ? `Link to view: ${deepLink}` : null,
             ]

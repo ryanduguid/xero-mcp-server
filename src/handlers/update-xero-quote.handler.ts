@@ -94,7 +94,11 @@ export async function updateXeroQuote(
   try {
     const existingQuote = await getQuote(quoteId);
 
-    const quoteStatus = existingQuote?.status;
+    if (!existingQuote) {
+      throw new Error("Quote not found.");
+    }
+
+    const quoteStatus = existingQuote.status;
 
     // Only allow updates to DRAFT quotes
     if (quoteStatus !== QuoteStatusCodes.DRAFT) {

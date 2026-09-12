@@ -74,9 +74,12 @@ async function createItem(
  */
 export async function createXeroItem(
   itemDetails: ItemDetails
-): Promise<XeroClientResponse<Item | null>> {
+): Promise<XeroClientResponse<Item>> {
   try {
     const item = await createItem(itemDetails);
+    if (!item) {
+      throw new Error("Item create failed: Xero returned no item.");
+    }
 
     return {
       result: item,

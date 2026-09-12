@@ -31,7 +31,7 @@ async function updateContact(
     addresses: address
       ? [
           {
-            addressType: Address.AddressTypeEnum.STREET,
+            addressType: address.addressType ?? Address.AddressTypeEnum.STREET,
             addressLine1: address.addressLine1,
             addressLine2: address.addressLine2,
             city: address.city,
@@ -60,7 +60,7 @@ async function updateContact(
 }
 
 /**
- * Create a new invoice in Xero
+ * Update an existing contact in Xero
  */
 export async function updateXeroContact(
   contactId: string,

@@ -72,7 +72,11 @@ export async function updateXeroInvoice(
   try {
     const existingInvoice = await getInvoice(invoiceId);
 
-    const invoiceStatus = existingInvoice?.status;
+    if (!existingInvoice) {
+      throw new Error("Invoice not found.");
+    }
+
+    const invoiceStatus = existingInvoice.status;
 
     // Only allow updates to DRAFT invoices
     if (invoiceStatus !== Invoice.StatusEnum.DRAFT) {

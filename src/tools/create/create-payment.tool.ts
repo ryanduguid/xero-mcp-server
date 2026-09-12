@@ -15,6 +15,7 @@ const CreatePaymentTool = CreateXeroTool(
  This deep link can be used to view the payment in Xero directly. \
  This link should be displayed to the user.",
   {
+    idempotencyKey: z.string().min(1).max(128).describe("A unique key for this payment operation. Reuse the same key and payment details for retries; use a new key for a separate payment."),
     invoiceId: z.string().describe("The ID of the invoice to pay"),
     accountId: z
       .string()
@@ -32,8 +33,9 @@ const CreatePaymentTool = CreateXeroTool(
       .optional()
       .describe("Optional payment reference/description"),
   },
-  async ({ invoiceId, accountId, amount, date, reference }) => {
+  async ({ idempotencyKey, invoiceId, accountId, amount, date, reference }) => {
     const result = await createXeroPayment({
+      idempotencyKey,
       invoiceId,
       accountId,
       amount,
@@ -62,7 +64,7 @@ const CreatePaymentTool = CreateXeroTool(
         {
           type: "text" as const,
           text: [
-            "Invoice created successfully:",
+            "Payment created successfully:",
             `ID: ${payment?.paymentID}`,
             `Reference: ${payment?.reference}`,
             `Invoice Number: ${payment?.invoiceNumber}`,

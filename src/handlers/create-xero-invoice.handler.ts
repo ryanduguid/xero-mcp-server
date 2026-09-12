@@ -23,16 +23,18 @@ async function createInvoice(
 ): Promise<Invoice | undefined> {
   await xeroClient.authenticate();
 
+  const invoiceDate = date || new Date().toISOString().split("T")[0];
+  const dueDate = new Date(`${invoiceDate}T00:00:00Z`);
+  dueDate.setUTCDate(dueDate.getUTCDate() + 30);
+
   const invoice: Invoice = {
     type: type,
     contact: {
       contactID: contactId,
     },
     lineItems: lineItems,
-    date: date || new Date().toISOString().split("T")[0], // Use provided date or today's date
-    dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0], // 30 days from now
+    date: invoiceDate,
+    dueDate: dueDate.toISOString().split("T")[0],
     ...(type === Invoice.TypeEnum.ACCPAY
       ? { invoiceNumber: reference }
       : { reference: reference }),

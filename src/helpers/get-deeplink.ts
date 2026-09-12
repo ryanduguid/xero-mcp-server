@@ -7,6 +7,7 @@ import {
   manualJournalDeepLink,
   quoteDeepLink,
   billDeepLink,
+  bankTransactionDeepLink,
 } from "../consts/deeplinks.js";
 
 export enum DeepLinkType {
@@ -17,6 +18,7 @@ export enum DeepLinkType {
   QUOTE,
   PAYMENT,
   BILL,
+  BANK_TRANSACTION,
 }
 
 /**
@@ -26,11 +28,11 @@ export enum DeepLinkType {
  * @param itemId
  * @returns
  */
-export const getDeepLink = async (type: DeepLinkType, itemId: string) => {
-  const orgShortCode = await xeroClient.getShortCode();
+export const getDeepLink = async (type: DeepLinkType, itemId: string, accountId?: string) => {
+  const orgShortCode = await xeroClient.getShortCode().catch(() => null);
 
   if (!orgShortCode) {
-    throw new Error("Failed to retrieve organisation short code");
+    return null;
   }
 
   switch (type) {
@@ -39,13 +41,15 @@ export const getDeepLink = async (type: DeepLinkType, itemId: string) => {
     case DeepLinkType.CREDIT_NOTE:
       return creditNoteDeepLink(orgShortCode, itemId);
     case DeepLinkType.MANUAL_JOURNAL:
-      return manualJournalDeepLink(itemId);
+      return manualJournalDeepLink(orgShortCode, itemId);
     case DeepLinkType.INVOICE:
       return invoiceDeepLink(orgShortCode, itemId);
     case DeepLinkType.QUOTE:
       return quoteDeepLink(orgShortCode, itemId);
     case DeepLinkType.PAYMENT:
       return paymentDeepLink(orgShortCode, itemId);
+    case DeepLinkType.BANK_TRANSACTION:
+      return accountId ? bankTransactionDeepLink(orgShortCode, accountId, itemId) : null;
     case DeepLinkType.BILL:
       return billDeepLink(orgShortCode, itemId);
   }

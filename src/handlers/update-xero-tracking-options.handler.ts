@@ -21,7 +21,7 @@ async function getTrackingOptions(trackingCategoryId: string): Promise<TrackingO
     getClientHeaders()
   );
 
-  return response.body.trackingCategories?.[0].options;
+  return response.body.trackingCategories?.[0]?.options;
 }
 
 async function updateTrackingOption(
@@ -61,7 +61,14 @@ export async function updateXeroTrackingOption(
       throw new Error("Could not find tracking options.");
     }
 
-    const updatedTrackingOptions = await Promise.all(options?.map(async (option) => {
+    const missingIds = options.filter(option => !existingTrackingOptions.some(
+      existing => existing.trackingOptionID === option.trackingOptionId,
+    )).map(option => option.trackingOptionId);
+    if (missingIds.length) {
+      throw new Error(`Tracking options not found: ${missingIds.join(", ")}. No updates were submitted.`);
+    }
+
+    const updatedTrackingOptions = await Promise.all(options.map(async (option) => {
       const existingTrackingOption = existingTrackingOptions
         .find(existingOption => existingOption.trackingOptionID === option.trackingOptionId);
 

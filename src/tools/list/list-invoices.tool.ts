@@ -58,14 +58,14 @@ const ListInvoicesTool = CreateXeroTool(
             invoice.lineAmountTypes
               ? `Line Amount Types: ${invoice.lineAmountTypes}`
               : null,
-            invoice.subTotal ? `Sub Total: ${invoice.subTotal}` : null,
-            invoice.totalTax ? `Total Tax: ${invoice.totalTax}` : null,
+            invoice.subTotal != null ? `Sub Total: ${invoice.subTotal}` : null,
+            invoice.totalTax != null ? `Total Tax: ${invoice.totalTax}` : null,
             `Total: ${invoice.total || 0}`,
-            invoice.totalDiscount
+            invoice.totalDiscount != null
               ? `Total Discount: ${invoice.totalDiscount}`
               : null,
             invoice.currencyCode ? `Currency: ${invoice.currencyCode}` : null,
-            invoice.currencyRate
+            invoice.currencyRate != null
               ? `Currency Rate: ${invoice.currencyRate}`
               : null,
             invoice.updatedDateUTC
@@ -74,9 +74,9 @@ const ListInvoicesTool = CreateXeroTool(
             invoice.fullyPaidOnDate
               ? `Fully Paid On: ${invoice.fullyPaidOnDate}`
               : null,
-            invoice.amountDue ? `Amount Due: ${invoice.amountDue}` : null,
-            invoice.amountPaid ? `Amount Paid: ${invoice.amountPaid}` : null,
-            invoice.amountCredited
+            invoice.amountDue != null ? `Amount Due: ${invoice.amountDue}` : null,
+            invoice.amountPaid != null ? `Amount Paid: ${invoice.amountPaid}` : null,
+            invoice.amountCredited != null
               ? `Amount Credited: ${invoice.amountCredited}`
               : null,
             invoice.hasErrors ? "Has Errors: Yes" : null,

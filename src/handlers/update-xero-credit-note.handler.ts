@@ -67,7 +67,11 @@ export async function updateXeroCreditNote(
   try {
     const existingCreditNote = await getCreditNote(creditNoteId);
 
-    const creditNoteStatus = existingCreditNote?.status;
+    if (!existingCreditNote) {
+      throw new Error("Credit note not found.");
+    }
+
+    const creditNoteStatus = existingCreditNote.status;
 
     // Only allow updates to DRAFT credit notes
     if (creditNoteStatus !== CreditNote.StatusEnum.DRAFT) {
