@@ -35,7 +35,7 @@ const CreateInvoiceTool = CreateXeroTool(
       Can be obtained from the list-contacts tool."),
       
     lineItems: z.array(lineItemSchema),
-    type: z.enum(["ACCREC", "ACCPAY"]).describe("The type of invoice to create. \
+    type: z.enum(["ACCREC", "ACCPAY"]).default("ACCREC").describe("The type of invoice to create. \
       ACCREC is for sales invoices, Accounts Receivable, or customer invoices. \
       ACCPAY is for purchase invoices, Accounts Payable invoices, supplier invoices, or bills. \
       If the type is not specified, the default is ACCREC."),

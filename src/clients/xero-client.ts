@@ -165,6 +165,7 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
       "https://identity.xero.com/connect/token",
       `grant_type=client_credentials&scope=${encodeURIComponent(scope)}`,
       {
+        timeout: 30_000,
         headers: {
           Authorization: `Basic ${credentials}`,
           "Content-Type": "application/x-www-form-urlencoded",
@@ -178,6 +179,7 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
     const connectionsResponse = await axios.get(
       "https://api.xero.com/connections",
       {
+        timeout: 30_000,
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",

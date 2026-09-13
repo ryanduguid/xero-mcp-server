@@ -65,9 +65,12 @@ async function updateItem(
 export async function updateXeroItem(
   itemId: string,
   itemDetails: ItemDetails
-): Promise<XeroClientResponse<Item | null>> {
+): Promise<XeroClientResponse<Item>> {
   try {
     const item = await updateItem(itemId, itemDetails);
+    if (!item) {
+      throw new Error("Item update failed: Xero returned no item.");
+    }
 
     return {
       result: item,

@@ -59,7 +59,7 @@ If they want the next page, call this tool again with the next page number, modi
               ? `Description: ${journal.narration}`
               : "No description",
             journal.date ? `Date: ${journal.date}` : null,
-            journal.journalLines
+            journal.journalLines?.length
               ? journal.journalLines.map((line) =>
                   [
                     `Line Amount: ${line.lineAmount}`,

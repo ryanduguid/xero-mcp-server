@@ -40,16 +40,16 @@ const ListPayrollEmployeeLeaveTypesTool = CreateXeroTool(
             leaveType.typeOfUnitsToAccrue
               ? `Type of Units: ${leaveType.typeOfUnitsToAccrue}`
               : null,
-            leaveType.unitsAccruedAnnually
+            leaveType.unitsAccruedAnnually != null
               ? `Units Accrued Annually: ${leaveType.unitsAccruedAnnually}`
               : null,
-            leaveType.maximumToAccrue
+            leaveType.maximumToAccrue != null
               ? `Maximum To Accrue: ${leaveType.maximumToAccrue}`
               : null,
-            leaveType.openingBalance
+            leaveType.openingBalance != null
               ? `Opening Balance: ${leaveType.openingBalance}`
               : null,
-            leaveType.rateAccruedHourly
+            leaveType.rateAccruedHourly != null
               ? `Rate Accrued Hourly: ${leaveType.rateAccruedHourly}`
               : null,
             leaveType.scheduleOfAccrualDate

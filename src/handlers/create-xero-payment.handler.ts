@@ -5,6 +5,7 @@ import { Payment } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 type PaymentProps = {
+  idempotencyKey: string;
   invoiceId: string;
   accountId: string;
   amount: number;
@@ -13,12 +14,16 @@ type PaymentProps = {
 };
 
 async function createPayment({
+  idempotencyKey,
   invoiceId,
   accountId,
   amount,
   date,
   reference,
 }: PaymentProps): Promise<Payment | undefined> {
+  if (!idempotencyKey || idempotencyKey.length > 128) {
+    throw new Error("An operation idempotency key of 1 to 128 characters is required. Reuse it for retries.");
+  }
   await xeroClient.authenticate();
 
   const payment: Payment = {
@@ -36,7 +41,7 @@ async function createPayment({
   const response = await xeroClient.accountingApi.createPayment(
     xeroClient.tenantId,
     payment,
-    undefined, // idempotencyKey
+    idempotencyKey,
     getClientHeaders(), // options
   );
 
@@ -47,6 +52,7 @@ async function createPayment({
  * Create a new payment in Xero
  */
 export async function createXeroPayment({
+  idempotencyKey,
   invoiceId,
   accountId,
   amount,
@@ -55,7 +61,8 @@ export async function createXeroPayment({
 }: PaymentProps): Promise<XeroClientResponse<Payment>> {
   try {
     const createdPayment = await createPayment({
-      invoiceId,
+      idempotencyKey,
+  invoiceId,
       accountId,
       amount,
       date,

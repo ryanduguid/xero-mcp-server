@@ -40,7 +40,7 @@ const ListContactGroupsTool = CreateXeroTool(
             `Contact Group ID: ${contactGroup.contactGroupID}`,
             `Name: ${contactGroup.name}`,
             `Status: ${contactGroup.status}`,
-            contactGroup.contacts
+            contactGroup.contacts?.length
               ? contactGroup.contacts.map(contact => [
                   `Contact ID: ${contact.contactID}`,
                   `Name: ${contact.name}`,

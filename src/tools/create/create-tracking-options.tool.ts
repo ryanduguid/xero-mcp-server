@@ -8,10 +8,11 @@ const CreateTrackingOptionsTool = CreateXeroTool(
   `Create tracking options for a tracking category in Xero.`,
   {
     trackingCategoryId: z.string(),
-    optionNames: z.array(z.string()).max(10)
+    optionNames: z.array(z.string().min(1)).min(1).max(10),
+    idempotencyKey: z.string().min(1).max(128).describe("A unique batch operation key. Reuse this key and the exact option names when retrying the batch or its failed options.")
   },
-  async ({ trackingCategoryId, optionNames }) => {
-    const response = await createXeroTrackingOptions(trackingCategoryId, optionNames);
+  async ({ trackingCategoryId, optionNames, idempotencyKey }) => {
+    const response = await createXeroTrackingOptions(trackingCategoryId, optionNames, idempotencyKey);
 
     if (response.isError) {
       return {
@@ -24,13 +25,21 @@ const CreateTrackingOptionsTool = CreateXeroTool(
       };
     }
 
-    const trackingOptions = response.result;
+    const outcomes = response.result;
+    const succeeded = outcomes.filter(outcome => outcome.option !== null).length;
     
     return {
+      isError: outcomes.some(outcome => outcome.error !== null),
       content: [
         {
           type: "text" as const,
-          text: `${trackingOptions.length || 0} out of ${optionNames.length} tracking options created:\n${trackingOptions.map(formatTrackingOption)}`
+          text: [
+            `${succeeded} out of ${optionNames.length} tracking options created.`,
+            `Batch operation key: ${idempotencyKey}. Reuse it for retries with the same option names.`,
+            ...outcomes.map(outcome => outcome.option
+              ? `Created: ${formatTrackingOption(outcome.option)}\nOption key: ${outcome.idempotencyKey}`
+              : `Failed: ${outcome.name}\nOption key: ${outcome.idempotencyKey}\nError: ${outcome.error}`),
+          ].join("\n")
         },
       ]
     };
