@@ -17,6 +17,7 @@ const RevertPayrollTimesheetTool = CreateXeroTool(
 
     if (response.isError) {
       return {
+        isError: true,
         content: [
           {
             type: "text" as const,

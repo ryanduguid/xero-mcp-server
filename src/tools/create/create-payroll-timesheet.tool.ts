@@ -31,6 +31,7 @@ This allows you to specify details such as the employee ID, payroll calendar ID,
 
     if (response.isError) {
       return {
+        isError: true,
         content: [
           {
             type: "text" as const,

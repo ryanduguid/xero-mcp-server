@@ -13,7 +13,7 @@ const ListReportBalanceSheetTool = CreateXeroTool(
     trackingOptionID1: z.string().optional().describe("Optional tracking option ID 1"),
     trackingOptionID2: z.string().optional().describe("Optional tracking option ID 2"),
     standardLayout: z.boolean().optional().describe("Optional flag to use standard layout"),
-    paymentsOnly: z.boolean().optional().describe("Optional flag to include only accounts with payments"),
+    paymentsOnly: z.boolean().optional().describe("Optional flag to report on cash transactions only, that is amounts actually paid, rather than the accrual view"),
   },
   async (args: ListReportBalanceSheetParams) => {
     const response = await listXeroReportBalanceSheet(args);
@@ -21,6 +21,7 @@ const ListReportBalanceSheetTool = CreateXeroTool(
     // Check if the response contains an error
     if (response.error !== null) {
       return {
+        isError: true,
         content: [
           {
             type: "text" as const,

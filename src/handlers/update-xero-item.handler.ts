@@ -13,6 +13,7 @@ interface ItemDetails {
     unitPrice?: number;
     taxType?: string;
     accountCode?: string;
+    cOGSAccountCode?: string;
   };
   salesDetails?: {
     unitPrice?: number;

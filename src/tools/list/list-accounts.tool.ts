@@ -9,6 +9,7 @@ const ListAccountsTool = CreateXeroTool(
     const response = await listXeroAccounts();
     if (response.error !== null) {
       return {
+        isError: true,
         content: [
           {
             type: "text" as const,

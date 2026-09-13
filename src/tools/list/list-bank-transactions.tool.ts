@@ -20,6 +20,7 @@ const ListBankTransactionsTool = CreateXeroTool(
     const response = await listXeroBankTransactions(page, bankAccountId);
     if (response.isError) {
       return {
+        isError: true,
         content: [
           {
             type: "text" as const,

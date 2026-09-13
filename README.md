@@ -32,7 +32,7 @@ If you don't already have a Xero account and organisation already, can create on
 
 We recommend using a Demo Company to start with because it comes with some pre-loaded sample data. Once you are logged in, switch to it by using the top left-hand dropdown and selecting "Demo Company". You can reset the data on a Demo Company, or change the country, at any time by using the top left-hand dropdown and navigating to [My Xero](https://my.xero.com).
 
-NOTE: To use Payroll-specific queries, the region should be either NZ or UK.
+NOTE: The payroll tools call the Xero Payroll NZ API, so payroll queries need a New Zealand organisation. There are no UK or AU payroll handlers in this server.
 
 ### Authentication
 
@@ -59,6 +59,13 @@ Custom connections require different scopes depending on when they were created.
 > **Note:** The MCP server automatically tries V1 scopes first and falls back to V2 if needed.
 > 
 > You can override these by setting the `XERO_SCOPES` environment variable to a space-separated list of scopes.
+
+##### Choosing an installation route
+
+`@xeroapi/xero-mcp-server` on npm is the upstream release (0.0.17). It does not carry the changes in this fork, including the error helper that keeps bearer tokens out of tool responses, the annual leave field correction and the tool error flag. Pick the route that matches what you want:
+
+- Upstream release: keep `npx -y @xeroapi/xero-mcp-server@latest` in the examples below.
+- This fork: clone it, run `npm ci && npm run build`, then use `command: "node"` with the absolute path of `dist/index.js`, as in the development example further down.
 
 ##### Integrating the MCP server with Claude Desktop
 
@@ -217,7 +224,7 @@ pnpm build
 
 To link your Xero MCP server in development to Claude Desktop go to Settings > Developer > Edit config and add the following to your `claude_desktop_config.json` file:
 
-NOTE: For Windows ensure the `args` path escapes the `\` between folders ie. `"C:\\projects\xero-mcp-server\\dist\\index.js"`
+NOTE: For Windows ensure the `args` path escapes every `\` between folders ie. `"C:\\projects\\xero-mcp-server\\dist\\index.js"`. A single `\` before a folder name, such as `\x`, is an invalid JSON escape and the config will not parse.
 
 ```json
 {

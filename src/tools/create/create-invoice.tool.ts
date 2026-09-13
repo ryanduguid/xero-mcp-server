@@ -47,6 +47,7 @@ const CreateInvoiceTool = CreateXeroTool(
     const result = await createXeroInvoice(contactId, lineItems, xeroInvoiceType, reference, date);
     if (result.isError) {
       return {
+        isError: true,
         content: [
           {
             type: "text" as const,

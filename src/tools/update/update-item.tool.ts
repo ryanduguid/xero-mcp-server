@@ -6,6 +6,12 @@ const purchaseDetailsSchema = z.object({
   unitPrice: z.number().optional(),
   taxType: z.string().optional(),
   accountCode: z.string().optional(),
+  cOGSAccountCode: z
+    .string()
+    .optional()
+    .describe(
+      "Cost of goods sold account code. Xero requires this, with the inventory asset account, to create a tracked inventory item.",
+    ),
 });
 
 const salesDetailsSchema = z.object({
@@ -55,6 +61,7 @@ const UpdateItemTool = CreateXeroTool(
 
     if (result.isError) {
       return {
+        isError: true,
         content: [
           {
             type: "text" as const,
