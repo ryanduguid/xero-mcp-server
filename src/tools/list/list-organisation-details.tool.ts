@@ -10,6 +10,7 @@ const ListOrganisationDetailsTool = CreateXeroTool(
     const response = await listXeroOrganisationDetails();
     if (response.error !== null) {
       return {
+        isError: true,
         content: [
           {
             type: "text" as const,
@@ -47,8 +48,14 @@ const ListOrganisationDetailsTool = CreateXeroTool(
     }).join("\n") || "No addresses available.";
 
     const paymentTerms = organisation.paymentTerms
-    ? Object.entries(organisation.paymentTerms).map(([key, value], index) => {
-        return `${index + 1}. ${key}: ${value}`;
+    ? Object.entries(organisation.paymentTerms).map(([key, term], index) => {
+        const detail = term && typeof term === "object"
+          ? [
+              term.day !== undefined ? `day ${term.day}` : null,
+              term.type !== undefined ? `type ${term.type}` : null,
+            ].filter(Boolean).join(", ") || "no terms set"
+          : String(term);
+        return `${index + 1}. ${key}: ${detail}`;
       }).join("\n")
     : "No payment terms available.";
 

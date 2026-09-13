@@ -2,7 +2,8 @@ import { z } from "zod";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { ensureError } from "../../helpers/ensure-error.js";
-import { LineAmountTypes, ManualJournal } from "xero-node";
+import { ManualJournal } from "xero-node";
+import { toLineAmountTypes } from "../../helpers/to-line-amount-types.js";
 import { updateXeroManualJournal } from "../../handlers/update-xero-manual-journal.handler.js";
 
 const UpdateManualJournalTool = CreateXeroTool(
@@ -68,7 +69,7 @@ const UpdateManualJournalTool = CreateXeroTool(
         args.manualJournalID,
         args.manualJournalLines,
         args.date,
-        args.lineAmountTypes as LineAmountTypes | undefined,
+        toLineAmountTypes(args.lineAmountTypes),
         args.status as ManualJournal.StatusEnum | undefined,
         args.url,
         args.showOnCashBasisReports,
@@ -76,6 +77,7 @@ const UpdateManualJournalTool = CreateXeroTool(
 
       if (response.isError) {
         return {
+          isError: true,
           content: [
             {
               type: "text" as const,
@@ -110,6 +112,7 @@ const UpdateManualJournalTool = CreateXeroTool(
       const err = ensureError(error);
 
       return {
+        isError: true,
         content: [
           {
             type: "text" as const,

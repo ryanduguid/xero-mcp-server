@@ -64,6 +64,7 @@ const UpdateContactTool = CreateXeroTool(
       );
       if (response.isError) {
         return {
+          isError: true,
           content: [
             {
               type: "text" as const,
@@ -96,6 +97,7 @@ const UpdateContactTool = CreateXeroTool(
       const err = ensureError(error);
 
       return {
+        isError: true,
         content: [
           {
             type: "text" as const,

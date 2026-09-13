@@ -20,6 +20,7 @@ const CreateContactTool = CreateXeroTool(
       const response = await createXeroContact(name, email, phone);
       if (response.isError) {
         return {
+          isError: true,
           content: [
             {
               type: "text" as const,
@@ -52,6 +53,7 @@ const CreateContactTool = CreateXeroTool(
       const err = ensureError(error);
 
       return {
+        isError: true,
         content: [
           {
             type: "text" as const,

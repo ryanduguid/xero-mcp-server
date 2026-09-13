@@ -44,6 +44,7 @@ const CreatePaymentTool = CreateXeroTool(
     });
     if (result.isError) {
       return {
+        isError: true,
         content: [
           {
             type: "text" as const,
@@ -67,7 +68,7 @@ const CreatePaymentTool = CreateXeroTool(
             "Payment created successfully:",
             `ID: ${payment?.paymentID}`,
             `Reference: ${payment?.reference}`,
-            `Invoice Number: ${payment?.invoiceNumber}`,
+            `Invoice Number: ${payment?.invoice?.invoiceNumber ?? payment?.invoiceNumber ?? "Not returned"}`,
             `Amount: ${payment?.amount}`,
             `Status: ${payment?.status}`,
             deepLink ? `Link to view: ${deepLink}` : null,
