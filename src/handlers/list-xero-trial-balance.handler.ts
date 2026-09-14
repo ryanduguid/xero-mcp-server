@@ -16,7 +16,7 @@ async function fetchTrialBalance(
   const response = await xeroClient.accountingApi.getReportTrialBalance(
     xeroClient.tenantId,
     date, // Optional date parameter in YYYY-MM-DD format
-    paymentsOnly, // Optional boolean to include only accounts with payments
+    paymentsOnly, // Optional boolean to report cash transactions
     getClientHeaders(),
   );
 
@@ -26,7 +26,7 @@ async function fetchTrialBalance(
 /**
  * List trial balance report from Xero
  * @param date Optional date for trial balance in YYYY-MM-DD format
- * @param paymentsOnly Optional boolean to include only accounts with payments
+ * @param paymentsOnly Optional boolean to report cash transactions
  */
 export async function listXeroTrialBalance(
   date?: string,
