@@ -49,7 +49,7 @@ async function fetchProfitAndLoss(
  * @param trackingCategoryID2 Optional second tracking category ID
  * @param trackingOptionID2 Optional second tracking option ID
  * @param standardLayout Optional boolean to use standard layout
- * @param paymentsOnly Optional boolean to include only accounts with payments
+ * @param paymentsOnly Optional boolean to report cash transactions
  */
 export async function listXeroProfitAndLoss(
   fromDate?: string,
