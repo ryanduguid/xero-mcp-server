@@ -131,6 +131,46 @@ test("every line is sent with the new tax type and keeps its line item ID", asyn
   expect(response.result?.updated).toBe(1);
 });
 
+test("unit amounts are read and written at four decimal places", async () => {
+  await recodeXeroBankTransactionTaxType([TRANSACTION_ID], "INPUT");
+
+  expect(client.accountingApi.getBankTransaction.mock.calls[0][2]).toBe(4);
+  expect(client.accountingApi.updateBankTransaction.mock.calls[0][3]).toBe(4);
+});
+
+test("the tax worked out under the old rate is not sent back", async () => {
+  client.accountingApi.getBankTransaction.mockResolvedValue({
+    body: {
+      bankTransactions: [
+        bankTransaction({
+          lineItems: [
+            {
+              lineItemID: "line-1",
+              unitAmount: 100,
+              accountCode: "429",
+              taxType: "EXEMPTEXPENSES",
+              taxAmount: 0,
+            },
+          ],
+        }),
+      ],
+    },
+  });
+
+  await recodeXeroBankTransactionTaxType([TRANSACTION_ID], "INPUT");
+
+  const sent =
+    client.accountingApi.updateBankTransaction.mock.calls[0][2]
+      .bankTransactions[0];
+  expect(sent.lineItems[0]).toEqual({
+    lineItemID: "line-1",
+    unitAmount: 100,
+    accountCode: "429",
+    taxType: "INPUT",
+  });
+  expect(sent.lineItems[0]).not.toHaveProperty("taxAmount");
+});
+
 test("a reconciled transaction is left alone and reported as blocked", async () => {
   client.accountingApi.getBankTransaction.mockResolvedValue({
     body: { bankTransactions: [bankTransaction({ isReconciled: true })] },

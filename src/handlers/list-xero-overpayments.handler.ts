@@ -9,9 +9,12 @@ async function getOverpayments(
   page: number,
   contactId?: string,
 ): Promise<Overpayment[]> {
-  const where = contactId
-    ? `Contact.ContactID==${toGuidFilter("contactId", contactId)}`
-    : undefined;
+  // A supplied contact ID is checked even when it is empty, so an empty
+  // value cannot fall through to a listing of every overpayment.
+  const where =
+    contactId !== undefined
+      ? `Contact.ContactID==${toGuidFilter("contactId", contactId)}`
+      : undefined;
 
   await xeroClient.authenticate();
 

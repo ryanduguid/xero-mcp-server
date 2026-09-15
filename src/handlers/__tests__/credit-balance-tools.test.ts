@@ -85,6 +85,18 @@ test("a contact ID that is not a UUID never reaches Xero", async () => {
   expect(client.accountingApi.getOverpayments).not.toHaveBeenCalled();
 });
 
+test("an empty contact ID is an error, not a listing of every credit", async () => {
+  const prepayments = await listXeroPrepayments(1, "");
+  const overpayments = await listXeroOverpayments(1, "");
+
+  expect(prepayments.isError).toBe(true);
+  expect(prepayments.error).toContain("must be a Xero UUID");
+  expect(overpayments.isError).toBe(true);
+  expect(overpayments.error).toContain("must be a Xero UUID");
+  expect(client.accountingApi.getPrepayments).not.toHaveBeenCalled();
+  expect(client.accountingApi.getOverpayments).not.toHaveBeenCalled();
+});
+
 test("remaining credit is reported to the caller", async () => {
   client.accountingApi.getPrepayments.mockResolvedValue({
     body: {

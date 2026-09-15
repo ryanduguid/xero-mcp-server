@@ -10,10 +10,11 @@ const ListBankTransactionsTool = CreateXeroTool(
   or to see all bank transactions before running.
   Ask the user if they want the next page of bank transactions after running this tool if
   10 bank transactions are returned.
-  If they do, call this tool again with the next page number and the bank account
-  if one was provided in the previous call.
-  A contact and a date range can be used to narrow the list, which is how to find
-  the transactions behind a contact's balance or a miscoded period.`,
+  If they do, call this tool again with the next page number and every filter supplied
+  in the previous call: the bank account, the contact and both dates. Each call rebuilds
+  its filter from its own arguments, so a filter left out widens the next page.
+  A contact and a date range are how to find the transactions behind a contact's
+  balance or a miscoded period.`,
   {
     page: z.number(),
     bankAccountId: z.string().optional(),
