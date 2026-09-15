@@ -3,7 +3,7 @@ import { BankTransfer } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
-import { toXeroDateFilter } from "../helpers/xero-date.js";
+import { assertDateRange, toXeroDateFilter } from "../helpers/xero-date.js";
 
 async function getBankTransfers(
   fromDate?: string,
@@ -11,11 +11,17 @@ async function getBankTransfers(
 ): Promise<BankTransfer[]> {
   const conditions: string[] = [];
 
-  if (fromDate) {
+  if (fromDate !== undefined && toDate !== undefined) {
+    assertDateRange(fromDate, toDate);
+  }
+
+  // A supplied date is checked even when it is empty, so an empty value
+  // cannot fall through to an unfiltered listing.
+  if (fromDate !== undefined) {
     conditions.push(`Date >= ${toXeroDateFilter("fromDate", fromDate)}`);
   }
 
-  if (toDate) {
+  if (toDate !== undefined) {
     conditions.push(`Date <= ${toXeroDateFilter("toDate", toDate)}`);
   }
 

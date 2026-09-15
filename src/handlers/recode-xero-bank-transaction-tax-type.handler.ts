@@ -6,10 +6,20 @@ import { formatError } from "../helpers/format-error.js";
 import { listXeroTaxRates } from "./list-xero-tax-rates.handler.js";
 
 /**
- * Each transaction costs one read and one write, so a batch this size stays
- * inside Xero's 60 calls a minute without pacing the loop.
+ * Each transaction costs one read and one write, plus one tax rate read per
+ * call, so one batch of this size fits inside Xero's 60 calls a minute. Two
+ * batches inside the same minute do not, which is why the refusal below tells
+ * the caller to wait rather than run straight on.
  */
 export const MAX_TRANSACTIONS_PER_CALL = 20;
+
+/**
+ * Read and write unit amounts at four decimal places. The default is two, and
+ * this handler sends the transaction it just read back to Xero, so a tax-only
+ * recode would otherwise round a three or four decimal unit price on the way
+ * through and change the line total.
+ */
+const UNIT_DECIMAL_PLACES = 4;
 
 export type RecodeOutcome =
   | "updated"
@@ -69,7 +79,7 @@ async function readBankTransaction(
   const response = await xeroClient.accountingApi.getBankTransaction(
     xeroClient.tenantId, // xeroTenantId
     bankTransactionId, // bankTransactionID
-    undefined, // unitdp
+    UNIT_DECIMAL_PLACES, // unitdp
     getClientHeaders(), // options
   );
 
@@ -87,14 +97,23 @@ async function writeTaxType(
   const recoded: BankTransaction = {
     ...existing,
     bankTransactionID: bankTransactionId,
-    lineItems: existing.lineItems?.map((line) => ({ ...line, taxType })),
+    lineItems: existing.lineItems?.map((line) => {
+      const recodedLine = { ...line, taxType };
+
+      // Drop the tax Xero worked out under the old rate. Sent back beside a
+      // new tax type it either fails validation or holds the line at the old
+      // GST, which is the one thing this tool exists to change.
+      delete recodedLine.taxAmount;
+
+      return recodedLine;
+    }),
   };
 
   await xeroClient.accountingApi.updateBankTransaction(
     xeroClient.tenantId, // xeroTenantId
     bankTransactionId, // bankTransactionID
     { bankTransactions: [recoded] }, // bankTransactions
-    undefined, // unitdp
+    UNIT_DECIMAL_PLACES, // unitdp
     undefined, // idempotencyKey
     getClientHeaders(), // options
   );
@@ -193,7 +212,7 @@ export async function recodeXeroBankTransactionTaxType(
 
     if (ids.length > MAX_TRANSACTIONS_PER_CALL) {
       throw new Error(
-        `At most ${MAX_TRANSACTIONS_PER_CALL} transactions can be recoded in one call, received ${ids.length}. Split the batch and run again.`,
+        `At most ${MAX_TRANSACTIONS_PER_CALL} transactions can be recoded in one call, received ${ids.length}. Split the batch and leave a minute between runs, so two runs together stay inside Xero's 60 calls a minute.`,
       );
     }
 
