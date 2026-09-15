@@ -6,14 +6,23 @@ interface XeroSdkProblem {
   status?: number;
 }
 
+interface XeroValidationError {
+  Message?: string;
+}
+
+interface XeroErrorBody {
+  httpStatusCode?: string;
+  problem?: XeroSdkProblem;
+  Detail?: string;
+  Message?: string;
+  ValidationErrors?: unknown;
+  Elements?: unknown;
+}
+
 interface XeroSdkError {
   response: {
     statusCode: number;
-    body?: {
-      httpStatusCode?: string;
-      problem?: XeroSdkProblem;
-      Detail?: string;
-    };
+    body?: XeroErrorBody;
   };
 }
 
@@ -39,6 +48,67 @@ function formatHttpStatus(status: number): string {
   }
 }
 
+// Enough to show what is wrong with a batch without flooding the response.
+const MAX_DETAIL_MESSAGES = 10;
+
+/**
+ * Collect the human-readable messages Xero puts in a rejected response body.
+ *
+ * Accounting API validation failures carry the reason in
+ * `Elements[].ValidationErrors[].Message`, so reading `Detail` alone returns a
+ * bare "400 BadRequest" and the model retries the same broken payload.
+ *
+ * Only named string fields are read. The body arrives attached to the request
+ * that produced it, so stringifying it would put the caller's Bearer token
+ * into a tool response.
+ */
+function extractDetail(body: unknown): string | undefined {
+  if (typeof body !== "object" || body === null) return undefined;
+
+  const messages: string[] = [];
+
+  const add = (value: unknown): void => {
+    if (typeof value === "string" && value.trim() !== "") {
+      messages.push(value.trim());
+    }
+  };
+
+  const addValidationErrors = (list: unknown): void => {
+    if (!Array.isArray(list)) return;
+    for (const entry of list) {
+      if (entry && typeof entry === "object") {
+        add((entry as XeroValidationError).Message);
+      }
+    }
+  };
+
+  const { Detail, Message, ValidationErrors, Elements } = body as XeroErrorBody;
+
+  add(Detail);
+  add(Message);
+  addValidationErrors(ValidationErrors);
+
+  if (Array.isArray(Elements)) {
+    for (const element of Elements) {
+      if (element && typeof element === "object") {
+        addValidationErrors(
+          (element as { ValidationErrors?: unknown }).ValidationErrors,
+        );
+      }
+    }
+  }
+
+  const unique = [...new Set(messages)];
+  if (unique.length === 0) return undefined;
+
+  const shown = unique.slice(0, MAX_DETAIL_MESSAGES);
+  const omitted = unique.length - shown.length;
+
+  return omitted > 0
+    ? `${shown.join("; ")} (+${omitted} more)`
+    : shown.join("; ");
+}
+
 /**
  * Format error messages for return to the LLM.
  *
@@ -50,7 +120,7 @@ function formatHttpStatus(status: number): string {
 export function formatError(error: unknown): string {
   if (error instanceof AxiosError) {
     const status = error.response?.status;
-    const detail = error.response?.data?.Detail;
+    const detail = extractDetail(error.response?.data);
 
     if (status !== undefined) {
       const mapped = formatHttpStatus(status);
@@ -67,7 +137,7 @@ export function formatError(error: unknown): string {
     const body = error.response.body;
     const problem = body?.problem;
     const title = problem?.title ?? body?.httpStatusCode ?? "HTTP error";
-    const detail = problem?.detail ?? body?.Detail;
+    const detail = problem?.detail ?? extractDetail(body);
     return detail ? `${status} ${title}: ${detail}` : `${status} ${title}`;
   }
 
