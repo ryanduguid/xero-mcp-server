@@ -155,4 +155,124 @@ describe("formatError", () => {
       );
     });
   });
+
+  describe("Xero validation errors", () => {
+    function makeAxiosErrorWithBody(status: number, data: unknown): AxiosError {
+      const headers = new AxiosHeaders();
+      const config = { headers };
+      return new AxiosError(
+        "Request failed",
+        String(status),
+        config as never,
+        null,
+        {
+          status,
+          data,
+          statusText: "",
+          headers: {},
+          config,
+        } as never,
+      );
+    }
+
+    it("reports the validation messages nested under Elements", () => {
+      const error = makeAxiosErrorWithBody(400, {
+        Message: "A validation exception occurred",
+        Elements: [
+          {
+            ValidationErrors: [
+              { Message: "Account code 'ZZZ' is not a valid code" },
+              { Message: "Tax type must be specified" },
+            ],
+          },
+        ],
+      });
+
+      expect(formatError(error)).toBe(
+        "A validation exception occurred; Account code 'ZZZ' is not a valid code; Tax type must be specified",
+      );
+    });
+
+    it("reports validation messages on the SDK error shape", () => {
+      const sdkError = {
+        response: {
+          statusCode: 400,
+          body: {
+            httpStatusCode: "BadRequest",
+            Elements: [
+              {
+                ValidationErrors: [
+                  { Message: "Invoice not of valid status for modification" },
+                ],
+              },
+            ],
+          },
+        },
+      };
+
+      expect(formatError(sdkError)).toBe(
+        "400 BadRequest: Invoice not of valid status for modification",
+      );
+    });
+
+    it("reads validation errors reported at the top level", () => {
+      const error = makeAxiosErrorWithBody(400, {
+        ValidationErrors: [{ Message: "Date is not a valid date" }],
+      });
+
+      expect(formatError(error)).toBe("Date is not a valid date");
+    });
+
+    it("reports each distinct message once", () => {
+      const error = makeAxiosErrorWithBody(400, {
+        Detail: "Line amount does not balance",
+        Message: "Line amount does not balance",
+        Elements: [
+          {
+            ValidationErrors: [{ Message: "Line amount does not balance" }],
+          },
+        ],
+      });
+
+      expect(formatError(error)).toBe("Line amount does not balance");
+    });
+
+    it("caps a long list and says how many are left", () => {
+      const error = makeAxiosErrorWithBody(400, {
+        Elements: Array.from({ length: 12 }, (_unused, index) => ({
+          ValidationErrors: [{ Message: `Problem ${index}` }],
+        })),
+      });
+
+      const result = formatError(error);
+
+      expect(result).toContain("Problem 9");
+      expect(result).not.toContain("Problem 10");
+      expect(result).toContain("(+2 more)");
+    });
+
+    it("never reads unnamed fields, so a token in the body cannot escape", () => {
+      const error = makeAxiosErrorWithBody(400, {
+        Detail: "Contact name is required",
+        request: { headers: { authorization: "Bearer LEAKY_TOKEN" } },
+      });
+
+      const result = formatError(error);
+
+      expect(result).toBe("Contact name is required");
+      expect(result).not.toContain("Bearer");
+      expect(result).not.toContain("LEAKY_TOKEN");
+    });
+
+    it("falls back to the generic message when the body is malformed", () => {
+      const error = makeAxiosErrorWithBody(400, {
+        Elements: "not an array",
+        ValidationErrors: 42,
+      });
+
+      expect(formatError(error)).toBe(
+        "An error occurred while communicating with Xero.",
+      );
+    });
+  });
 });
