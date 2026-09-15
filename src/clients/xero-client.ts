@@ -78,6 +78,14 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
   private readonly clientId: string;
   private readonly clientSecret: string;
 
+  // Client credentials tokens last 30 minutes. Without a cache every tool
+  // call pays for a token request and a connections lookup before it reaches
+  // the Xero API, so hold the token set until it is close to expiry.
+  private static readonly REFRESH_BUFFER_MS = 60_000;
+  private cachedToken: TokenSet | null = null;
+  private cachedTokenExpiresAt = 0;
+  private pendingTokenRequest: Promise<TokenSet> | null = null;
+
   // Legacy scopes (deprecated but still supported for existing apps)
   private readonly XERO_DEFAULT_AUTH_SCOPES_V1 = [
     "accounting.transactions",
@@ -194,8 +202,46 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
     return response.data;
   }
 
+  private cacheToken(token: TokenSet): void {
+    const lifetimeSeconds = token.expires_in;
+
+    // An unknown lifetime is not cacheable: reusing it would keep serving a
+    // token that Xero may already have expired.
+    if (typeof lifetimeSeconds !== "number" || lifetimeSeconds <= 0) {
+      this.cachedToken = null;
+      this.cachedTokenExpiresAt = 0;
+      return;
+    }
+
+    this.cachedToken = token;
+    this.cachedTokenExpiresAt = Date.now() + lifetimeSeconds * 1000;
+  }
+
+  private async getCachedClientCredentialsToken(): Promise<TokenSet> {
+    if (
+      this.cachedToken &&
+      this.cachedTokenExpiresAt - Date.now() >
+        CustomConnectionsXeroClient.REFRESH_BUFFER_MS
+    ) {
+      return this.cachedToken;
+    }
+
+    // Share one request between concurrent tool calls so a cache miss cannot
+    // fan out into several token requests against Xero's rate limit.
+    this.pendingTokenRequest ??= this.getClientCredentialsToken()
+      .then((token) => {
+        this.cacheToken(token);
+        return token;
+      })
+      .finally(() => {
+        this.pendingTokenRequest = null;
+      });
+
+    return this.pendingTokenRequest;
+  }
+
   public async authenticate() {
-    const tokenResponse = await this.getClientCredentialsToken();
+    const tokenResponse = await this.getCachedClientCredentialsToken();
 
     this.setTokenSet({
       access_token: tokenResponse.access_token,
