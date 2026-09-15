@@ -11,13 +11,33 @@ const ListBankTransactionsTool = CreateXeroTool(
   Ask the user if they want the next page of bank transactions after running this tool if
   10 bank transactions are returned.
   If they do, call this tool again with the next page number and the bank account
-  if one was provided in the previous call.`,
+  if one was provided in the previous call.
+  A contact and a date range can be used to narrow the list, which is how to find
+  the transactions behind a contact's balance or a miscoded period.`,
   {
     page: z.number(),
-    bankAccountId: z.string().optional()
+    bankAccountId: z.string().optional(),
+    contactId: z
+      .string()
+      .optional()
+      .describe("Return only transactions for this Xero contact ID."),
+    fromDate: z
+      .string()
+      .optional()
+      .describe("Earliest transaction date to include, as YYYY-MM-DD."),
+    toDate: z
+      .string()
+      .optional()
+      .describe("Latest transaction date to include, as YYYY-MM-DD."),
   },
-  async ({ bankAccountId, page }) => {
-    const response = await listXeroBankTransactions(page, bankAccountId);
+  async ({ bankAccountId, page, contactId, fromDate, toDate }) => {
+    const response = await listXeroBankTransactions(
+      page,
+      bankAccountId,
+      contactId,
+      fromDate,
+      toDate,
+    );
     if (response.isError) {
       return {
         isError: true,
