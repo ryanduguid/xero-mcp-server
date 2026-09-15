@@ -33,6 +33,23 @@ export function assertIsoDate(field: string, value: string): CalendarDate {
 }
 
 /**
+ * Reject a range whose start falls after its end.
+ *
+ * Xero joins the two comparisons with AND, so a reversed range comes back as
+ * an empty result that reads like the contact having no activity.
+ */
+export function assertDateRange(fromDate: string, toDate: string): void {
+  assertIsoDate("fromDate", fromDate);
+  assertIsoDate("toDate", toDate);
+
+  if (fromDate > toDate) {
+    throw new Error(
+      `fromDate "${fromDate}" is after toDate "${toDate}", so the range holds no dates`,
+    );
+  }
+}
+
+/**
  * Render a validated date as the DateTime literal Xero where clauses expect.
  */
 export function toXeroDateFilter(field: string, value: string): string {

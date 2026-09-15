@@ -9,9 +9,12 @@ async function getPrepayments(
   page: number,
   contactId?: string,
 ): Promise<Prepayment[]> {
-  const where = contactId
-    ? `Contact.ContactID==${toGuidFilter("contactId", contactId)}`
-    : undefined;
+  // A supplied contact ID is checked even when it is empty, so an empty
+  // value cannot fall through to a listing of every prepayment.
+  const where =
+    contactId !== undefined
+      ? `Contact.ContactID==${toGuidFilter("contactId", contactId)}`
+      : undefined;
 
   await xeroClient.authenticate();
 

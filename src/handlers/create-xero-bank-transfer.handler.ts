@@ -6,11 +6,16 @@ import { formatError } from "../helpers/format-error.js";
 import { assertIsoDate } from "../helpers/xero-date.js";
 
 async function createBankTransfer(
+  idempotencyKey: string,
   fromBankAccountId: string,
   toBankAccountId: string,
   amount: number,
   date?: string,
 ): Promise<BankTransfer | undefined> {
+  if (!idempotencyKey || idempotencyKey.length > 128) {
+    throw new Error("An operation idempotency key of 1 to 128 characters is required. Reuse it for retries.");
+  }
+
   if (!(amount > 0)) {
     throw new Error("amount must be greater than zero");
   }
@@ -43,7 +48,7 @@ async function createBankTransfer(
     {
       bankTransfers: [bankTransfer],
     }, // bankTransfers
-    undefined, // idempotencyKey
+    idempotencyKey, // idempotencyKey
     getClientHeaders(),
   );
 
@@ -55,8 +60,12 @@ async function createBankTransfer(
  *
  * Xero rejects a transfer between accounts in different currencies, and both
  * accounts must be of type BANK.
+ *
+ * The caller supplies the idempotency key so a retry after a lost response
+ * cannot post the transfer, and its pair of ledger transactions, twice.
  */
 export async function createXeroBankTransfer(
+  idempotencyKey: string,
   fromBankAccountId: string,
   toBankAccountId: string,
   amount: number,
@@ -64,6 +73,7 @@ export async function createXeroBankTransfer(
 ): Promise<XeroClientResponse<BankTransfer>> {
   try {
     const bankTransfer = await createBankTransfer(
+      idempotencyKey,
       fromBankAccountId,
       toBankAccountId,
       amount,

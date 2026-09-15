@@ -11,7 +11,8 @@ const RecodeBankTransactionTaxTypeTool = CreateXeroTool(
   This writes to the ledger. It changes the GST on each line, so it changes the next BAS.
   Find the transactions with list-bank-transactions first, show the user the list and the tax type, and only call this once they have agreed to it.
   Name every transaction explicitly: this tool takes no contact or date filter, so nothing is swept up by a query.
-  Reconciled, voided and deleted transactions are reported as blocked and left untouched, and lines already on the target tax type are left alone.`,
+  Reconciled, voided and deleted transactions are reported as blocked and left untouched, and lines already on the target tax type are left alone.
+  Leave a minute between consecutive batches, so two runs together stay inside Xero's rate limit.`,
   {
     bankTransactionIds: z
       .array(z.string())

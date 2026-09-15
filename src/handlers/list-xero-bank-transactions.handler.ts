@@ -4,7 +4,7 @@ import { getClientHeaders } from "../helpers/get-client-headers.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { toGuidFilter } from "../helpers/xero-guid.js";
-import { toXeroDateFilter } from "../helpers/xero-date.js";
+import { assertDateRange, toXeroDateFilter } from "../helpers/xero-date.js";
 
 async function getBankTransactions(
   page: number,
@@ -15,21 +15,28 @@ async function getBankTransactions(
 ): Promise<BankTransaction[]> {
   const conditions: string[] = [];
 
-  if (bankAccountId) {
+  // Every filter is checked when it is supplied, empty string included: an
+  // empty value that fell through to "no filter" would quietly answer a
+  // question about one contact or period with the whole account.
+  if (bankAccountId !== undefined) {
     conditions.push(
       `BankAccount.AccountID=${toGuidFilter("bankAccountId", bankAccountId)}`,
     );
   }
 
-  if (contactId) {
+  if (contactId !== undefined) {
     conditions.push(`Contact.ContactID==${toGuidFilter("contactId", contactId)}`);
   }
 
-  if (fromDate) {
+  if (fromDate !== undefined && toDate !== undefined) {
+    assertDateRange(fromDate, toDate);
+  }
+
+  if (fromDate !== undefined) {
     conditions.push(`Date >= ${toXeroDateFilter("fromDate", fromDate)}`);
   }
 
-  if (toDate) {
+  if (toDate !== undefined) {
     conditions.push(`Date <= ${toXeroDateFilter("toDate", toDate)}`);
   }
 

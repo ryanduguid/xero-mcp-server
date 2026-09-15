@@ -8,6 +8,13 @@ const CreateBankTransferTool = CreateXeroTool(
   Both accounts must be bank accounts in the same currency. Use list-accounts to find their account IDs.
   This writes to the ledger and posts a matching transaction in each account.`,
   {
+    idempotencyKey: z
+      .string()
+      .min(1)
+      .max(128)
+      .describe(
+        "A unique key for this transfer operation. Reuse the same key and transfer details for retries; use a new key for a separate transfer.",
+      ),
     fromBankAccountId: z
       .string()
       .describe("Xero account ID of the bank account the money leaves."),
@@ -25,8 +32,9 @@ const CreateBankTransferTool = CreateXeroTool(
         "Transfer date as YYYY-MM-DD. Defaults to today's UTC date, which can differ from the local date.",
       ),
   },
-  async ({ fromBankAccountId, toBankAccountId, amount, date }) => {
+  async ({ idempotencyKey, fromBankAccountId, toBankAccountId, amount, date }) => {
     const response = await createXeroBankTransfer(
+      idempotencyKey,
       fromBankAccountId,
       toBankAccountId,
       amount,
