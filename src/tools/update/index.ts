@@ -1,4 +1,6 @@
 import ApprovePayrollTimesheetTool from "./approve-payroll-timesheet.tool.js";
+import RecodeBankTransactionTaxTypeTool
+  from "./recode-bank-transaction-tax-type.tool.js";
 import RevertPayrollTimesheetTool from "./revert-payroll-timesheet.tool.js";
 import UpdateBankTransactionTool from "./update-bank-transaction.tool.js";
 import UpdateContactTool from "./update-contact.tool.js";
@@ -21,6 +23,7 @@ export const UpdateTools = [
   UpdateQuoteTool,
   UpdateItemTool,
   UpdateBankTransactionTool,
+  RecodeBankTransactionTaxTypeTool,
   ApprovePayrollTimesheetTool,
   AddTimesheetLineTool,
   UpdatePayrollTimesheetLineTool,
