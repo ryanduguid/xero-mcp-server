@@ -74,6 +74,39 @@ test("an identifier that is not a UUID never reaches a where clause", async () =
   expect(client.accountingApi.getBankTransactions).not.toHaveBeenCalled();
 });
 
+test("an empty filter value is an error, not a wider query", async () => {
+  const byContact = await listXeroBankTransactions(1, undefined, "");
+  const byAccount = await listXeroBankTransactions(1, "");
+  const byFromDate = await listXeroBankTransactions(1, undefined, undefined, "");
+  const byToDate = await listXeroBankTransactions(
+    1,
+    undefined,
+    undefined,
+    undefined,
+    "",
+  );
+
+  expect(byContact.error).toContain("must be a Xero UUID");
+  expect(byAccount.error).toContain("must be a Xero UUID");
+  expect(byFromDate.error).toContain("YYYY-MM-DD");
+  expect(byToDate.error).toContain("YYYY-MM-DD");
+  expect(client.accountingApi.getBankTransactions).not.toHaveBeenCalled();
+});
+
+test("a reversed date range is refused rather than read as no activity", async () => {
+  const response = await listXeroBankTransactions(
+    1,
+    undefined,
+    undefined,
+    "2026-09-30",
+    "2026-07-01",
+  );
+
+  expect(response.isError).toBe(true);
+  expect(response.error).toContain("is after toDate");
+  expect(client.accountingApi.getBankTransactions).not.toHaveBeenCalled();
+});
+
 test("a date that is not on the calendar never reaches a where clause", async () => {
   const response = await listXeroBankTransactions(
     1,

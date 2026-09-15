@@ -70,12 +70,34 @@ test("filter syntax in a date is rejected instead of injected", async () => {
   expect(client.accountingApi.getBankTransfers).not.toHaveBeenCalled();
 });
 
-test("a created transfer sends both account IDs and the amount", async () => {
+test("an empty date is an error, not an unfiltered listing", async () => {
+  const response = await listXeroBankTransfers("");
+
+  expect(response.isError).toBe(true);
+  expect(response.error).toContain("YYYY-MM-DD");
+  expect(client.accountingApi.getBankTransfers).not.toHaveBeenCalled();
+});
+
+test("a reversed date range is refused rather than read as no activity", async () => {
+  const response = await listXeroBankTransfers("2026-09-30", "2026-07-01");
+
+  expect(response.isError).toBe(true);
+  expect(response.error).toContain("is after toDate");
+  expect(client.accountingApi.getBankTransfers).not.toHaveBeenCalled();
+});
+
+test("a created transfer sends both account IDs, the amount and the caller's key", async () => {
   client.accountingApi.createBankTransfer.mockResolvedValue({
     body: { bankTransfers: [{ bankTransferID: "bt-1" }] },
   });
 
-  await createXeroBankTransfer("acc-from", "acc-to", 250.5, "2026-08-31");
+  await createXeroBankTransfer(
+    "transfer-key-1",
+    "acc-from",
+    "acc-to",
+    250.5,
+    "2026-08-31",
+  );
 
   const args = client.accountingApi.createBankTransfer.mock.calls[0];
   expect(args[1]).toEqual({
@@ -88,7 +110,37 @@ test("a created transfer sends both account IDs and the amount", async () => {
       },
     ],
   });
-  expect(args[2]).toBeUndefined();
+  expect(args[2]).toBe("transfer-key-1");
+});
+
+test("a retry with the same key reaches Xero with that key, not a new one", async () => {
+  client.accountingApi.createBankTransfer.mockResolvedValue({
+    body: { bankTransfers: [{ bankTransferID: "bt-1" }] },
+  });
+
+  await createXeroBankTransfer("transfer-key-1", "acc-from", "acc-to", 10);
+  await createXeroBankTransfer("transfer-key-1", "acc-from", "acc-to", 10);
+
+  const keys = client.accountingApi.createBankTransfer.mock.calls.map(
+    (call: unknown[]) => call[2],
+  );
+  expect(keys).toEqual(["transfer-key-1", "transfer-key-1"]);
+});
+
+test("a missing or oversized key is refused before the write", async () => {
+  for (const key of ["", "k".repeat(129)]) {
+    const response = await createXeroBankTransfer(
+      key,
+      "acc-from",
+      "acc-to",
+      10,
+    );
+
+    expect(response.isError).toBe(true);
+    expect(response.error).toContain("idempotency key of 1 to 128 characters");
+  }
+
+  expect(client.accountingApi.createBankTransfer).not.toHaveBeenCalled();
 });
 
 test("an omitted date defaults to today", async () => {
@@ -96,7 +148,7 @@ test("an omitted date defaults to today", async () => {
     body: { bankTransfers: [{ bankTransferID: "bt-1" }] },
   });
 
-  await createXeroBankTransfer("acc-from", "acc-to", 10);
+  await createXeroBankTransfer("transfer-key-1", "acc-from", "acc-to", 10);
 
   const sent = client.accountingApi.createBankTransfer.mock.calls[0][1];
   expect(sent.bankTransfers[0].date).toBe(
@@ -104,8 +156,27 @@ test("an omitted date defaults to today", async () => {
   );
 });
 
+test("a date that is not on the calendar is refused before the write", async () => {
+  const response = await createXeroBankTransfer(
+    "transfer-key-1",
+    "acc-from",
+    "acc-to",
+    10,
+    "2026-02-31",
+  );
+
+  expect(response.isError).toBe(true);
+  expect(response.error).toContain("not a date on the calendar");
+  expect(client.accountingApi.createBankTransfer).not.toHaveBeenCalled();
+});
+
 test("a transfer to the same account is refused before the write", async () => {
-  const response = await createXeroBankTransfer("acc-same", "acc-same", 10);
+  const response = await createXeroBankTransfer(
+    "transfer-key-1",
+    "acc-same",
+    "acc-same",
+    10,
+  );
 
   expect(response.isError).toBe(true);
   expect(response.error).toContain("must be different accounts");
@@ -114,7 +185,12 @@ test("a transfer to the same account is refused before the write", async () => {
 
 test("a non-positive amount is refused before the write", async () => {
   for (const amount of [0, -5]) {
-    const response = await createXeroBankTransfer("acc-from", "acc-to", amount);
+    const response = await createXeroBankTransfer(
+      "transfer-key-1",
+      "acc-from",
+      "acc-to",
+      amount,
+    );
 
     expect(response.isError).toBe(true);
     expect(response.error).toContain("greater than zero");
@@ -140,6 +216,7 @@ test("a rejected write reaches the caller with the MCP error flag", async () => 
   );
 
   const result = await call(CreateBankTransferTool, {
+    idempotencyKey: "transfer-key-1",
     fromBankAccountId: "acc-from",
     toBankAccountId: "acc-to",
     amount: 10,
