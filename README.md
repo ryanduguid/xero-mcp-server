@@ -93,7 +93,7 @@ NOTE: If you are using [Node Version Manager](https://github.com/nvm-sh/nvm) `"c
 
 #### 2. Bearer Token
 
-This is a better choice if you are to support multiple Xero accounts at runtime and allow the MCP client to execute an auth flow (such as PKCE) as required.
+Use this when the MCP client obtains a token itself, through an auth flow such as PKCE, and hands it to the server. The server uses the token as supplied and works against the first organisation Xero lists for it: `updateTenants` sets the tenant to `tenants[0]` and no tool takes a tenant argument. A token connected to more than one organisation therefore queries whichever Xero lists first, so authorise the token for the one organisation you intend to query and run one server process per token.
 In this case, use the following configuration:
 
 ```json
