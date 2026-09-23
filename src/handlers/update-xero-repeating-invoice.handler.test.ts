@@ -131,6 +131,35 @@ describe("updateXeroRepeatingInvoice", () => {
     });
   });
 
+  it("keeps unspecified schedule fields from the existing template", async () => {
+    const schedule = {
+      period: 1,
+      unit: "MONTHLY",
+      dueDate: 20,
+      dueDateType: "OFFOLLOWINGMONTH",
+      startDate: "2026-07-01",
+      endDate: "2027-06-30",
+    };
+    mockAccountingApi.getRepeatingInvoice.mockResolvedValue({
+      body: { repeatingInvoices: [{ ...existingDraft, schedule }] },
+    });
+    mockAccountingApi.updateRepeatingInvoice.mockResolvedValue({
+      body: { repeatingInvoices: [updatedRepeatingInvoice] },
+    });
+
+    const result = await updateXeroRepeatingInvoice({
+      repeatingInvoiceId: "ri-1",
+      schedule: { period: 3 },
+    });
+
+    expect(result.isError).toBe(false);
+    const payload = mockAccountingApi.updateRepeatingInvoice.mock.calls[0][2];
+    expect(payload.repeatingInvoices[0].schedule).toEqual({
+      ...schedule,
+      period: 3,
+    });
+  });
+
   it("rejects deleted repeating invoices", async () => {
     mockAccountingApi.getRepeatingInvoice.mockResolvedValue({
       body: { repeatingInvoices: [{ ...existingDraft, status: "DELETED" }] },

@@ -37,29 +37,35 @@ async function getRepeatingInvoice(
   return response.body.repeatingInvoices?.[0];
 }
 
+// Send a complete schedule: fill any field the caller did not supply from the
+// existing template, so a period-only change keeps its due date and start date.
 function mapSchedule(
-  schedule?: Partial<RepeatingInvoiceScheduleInput>,
+  schedule: Partial<RepeatingInvoiceScheduleInput> | undefined,
+  existing: Schedule | undefined,
 ): Schedule | undefined {
   if (!schedule) {
     return undefined;
   }
 
   return {
-    period: schedule.period,
-    unit: schedule.unit as Schedule.UnitEnum | undefined,
-    dueDate: schedule.dueDate,
-    dueDateType: schedule.dueDateType as Schedule.DueDateTypeEnum | undefined,
-    startDate: schedule.startDate,
-    endDate: schedule.endDate,
+    period: schedule.period ?? existing?.period,
+    unit: (schedule.unit as Schedule.UnitEnum | undefined) ?? existing?.unit,
+    dueDate: schedule.dueDate ?? existing?.dueDate,
+    dueDateType:
+      (schedule.dueDateType as Schedule.DueDateTypeEnum | undefined) ??
+      existing?.dueDateType,
+    startDate: schedule.startDate ?? existing?.startDate,
+    endDate: schedule.endDate ?? existing?.endDate,
   };
 }
 
 async function updateRepeatingInvoice(
   params: UpdateRepeatingInvoiceParams,
+  existing: RepeatingInvoice,
 ): Promise<RepeatingInvoice | undefined> {
   const repeatingInvoice: RepeatingInvoice = {
     lineItems: params.lineItems,
-    schedule: mapSchedule(params.schedule),
+    schedule: mapSchedule(params.schedule, existing.schedule),
     reference: params.reference,
     contact: params.contactId ? { contactID: params.contactId } : undefined,
     type: params.type as RepeatingInvoice.TypeEnum | undefined,
@@ -110,7 +116,7 @@ export async function updateXeroRepeatingInvoice(
       };
     }
 
-    const updated = await updateRepeatingInvoice(params);
+    const updated = await updateRepeatingInvoice(params, existing);
 
     if (!updated) {
       throw new Error("Repeating invoice update failed.");
