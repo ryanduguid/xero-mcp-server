@@ -5,7 +5,11 @@ import { addDaysIsoDate, todayIsoDate } from "../xero-date.js";
 const originalTz = process.env.TZ;
 
 afterEach(() => {
-  process.env.TZ = originalTz;
+  if (originalTz === undefined) {
+    delete process.env.TZ;
+  } else {
+    process.env.TZ = originalTz;
+  }
 });
 
 test("today is the local date, not the UTC date", () => {
