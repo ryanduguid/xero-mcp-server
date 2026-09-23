@@ -27,6 +27,10 @@ test("adding days crosses month and year ends on the calendar", () => {
   expect(addDaysIsoDate("2028-02-01", 30)).toBe("2028-03-02");
 });
 
+test("adding days preserves years below 100", () => {
+  expect(addDaysIsoDate("0099-12-01", 31)).toBe("0100-01-01");
+});
+
 test("adding days refuses a date that is not on the calendar", () => {
   expect(() => addDaysIsoDate("2026-02-31", 1)).toThrow("not a date on the calendar");
 });

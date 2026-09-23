@@ -77,7 +77,8 @@ export function todayIsoDate(now: Date = new Date()): string {
  */
 export function addDaysIsoDate(value: string, days: number): string {
   const { year, month, day } = assertIsoDate("date", value);
-  return new Date(Date.UTC(year, month - 1, day + days))
-    .toISOString()
-    .split("T")[0];
+  const result = new Date(0);
+  result.setUTCFullYear(year, month - 1, day + days);
+
+  return result.toISOString().split("T")[0];
 }
