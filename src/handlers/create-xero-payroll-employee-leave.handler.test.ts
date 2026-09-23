@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  mockAccountingApi,
   mockPayrollNZApi,
   mockXeroClient,
   resetXeroClientMocks,
@@ -10,6 +11,7 @@ vi.mock("../clients/xero-client.js", () => ({
 }));
 
 import { createXeroPayrollEmployeeLeave } from "./create-xero-payroll-employee-leave.handler.js";
+import { resetPayrollRegionCache } from "../helpers/get-payroll-region.js";
 
 const createdLeave = {
   leaveID: "leave-1",
@@ -38,6 +40,10 @@ const createParams = {
 describe("createXeroPayrollEmployeeLeave", () => {
   beforeEach(() => {
     resetXeroClientMocks();
+    resetPayrollRegionCache();
+    mockAccountingApi.getOrganisations.mockResolvedValue({
+      body: { organisations: [{ countryCode: "NZ" }] },
+    });
   });
 
   it("creates employee leave and returns the created record", async () => {

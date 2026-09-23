@@ -1,6 +1,7 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { assertNewZealandPayroll } from "../helpers/get-payroll-region.js";
 import { EmployeeLeave, LeavePeriod } from "../types/payroll-nz-types.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 
@@ -16,7 +17,7 @@ export interface CreatePayrollEmployeeLeaveParams {
 async function createEmployeeLeave(
   params: CreatePayrollEmployeeLeaveParams,
 ): Promise<EmployeeLeave | null> {
-  await xeroClient.authenticate();
+  await assertNewZealandPayroll("create-payroll-employee-leave");
 
   const employeeLeave: EmployeeLeave = {
     leaveTypeID: params.leaveTypeID,

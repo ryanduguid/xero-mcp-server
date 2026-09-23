@@ -1,6 +1,7 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { assertNewZealandPayroll } from "../helpers/get-payroll-region.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 
 export interface DeletePayrollEmployeeLeaveParams {
@@ -11,7 +12,7 @@ export interface DeletePayrollEmployeeLeaveParams {
 async function deleteEmployeeLeave(
   params: DeletePayrollEmployeeLeaveParams,
 ): Promise<void> {
-  await xeroClient.authenticate();
+  await assertNewZealandPayroll("delete-payroll-employee-leave");
 
   await xeroClient.payrollNZApi.deleteEmployeeLeave(
     xeroClient.tenantId,

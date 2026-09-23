@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  mockAccountingApi,
   mockPayrollNZApi,
   mockXeroClient,
   resetXeroClientMocks,
@@ -10,10 +11,15 @@ vi.mock("../clients/xero-client.js", () => ({
 }));
 
 import { deleteXeroPayrollEmployeeLeave } from "./delete-xero-payroll-employee-leave.handler.js";
+import { resetPayrollRegionCache } from "../helpers/get-payroll-region.js";
 
 describe("deleteXeroPayrollEmployeeLeave", () => {
   beforeEach(() => {
     resetXeroClientMocks();
+    resetPayrollRegionCache();
+    mockAccountingApi.getOrganisations.mockResolvedValue({
+      body: { organisations: [{ countryCode: "NZ" }] },
+    });
   });
 
   it("deletes employee leave by employee and leave ID", async () => {
@@ -59,5 +65,20 @@ describe("deleteXeroPayrollEmployeeLeave", () => {
       isError: true,
       error: "cannot delete processed leave",
     });
+  });
+
+  it("refuses organisations outside New Zealand", async () => {
+    mockAccountingApi.getOrganisations.mockResolvedValue({
+      body: { organisations: [{ countryCode: "AU" }] },
+    });
+
+    const result = await deleteXeroPayrollEmployeeLeave({
+      employeeId: "emp-1",
+      leaveId: "leave-1",
+    });
+
+    expect(result.isError).toBe(true);
+    expect(result.error).toMatch(/New Zealand organisations/);
+    expect(mockPayrollNZApi.deleteEmployeeLeave).not.toHaveBeenCalled();
   });
 });
