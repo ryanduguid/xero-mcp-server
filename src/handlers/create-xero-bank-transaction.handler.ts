@@ -3,6 +3,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { BankTransaction } from "xero-node";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { todayIsoDate } from "../helpers/xero-date.js";
 
 interface BankTransactionLineItem {
   description: string;
@@ -33,7 +34,7 @@ async function createBankTransaction(
       contactID: contactId
     },
     lineItems: lineItems,
-    date: date ?? new Date().toISOString().split("T")[0],
+    date: date ?? todayIsoDate(),
     reference: reference,
     status: BankTransaction.StatusEnum.AUTHORISED
   };

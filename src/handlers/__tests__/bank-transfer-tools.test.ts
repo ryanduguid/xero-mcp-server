@@ -12,6 +12,7 @@ vi.mock("../../clients/xero-client.js", () => ({ xeroClient: client }));
 
 import { listXeroBankTransfers } from "../list-xero-bank-transfers.handler.js";
 import { createXeroBankTransfer } from "../create-xero-bank-transfer.handler.js";
+import { todayIsoDate } from "../../helpers/xero-date.js";
 import ListBankTransfersTool from "../../tools/list/list-bank-transfers.tool.js";
 import CreateBankTransferTool from "../../tools/create/create-bank-transfer.tool.js";
 
@@ -151,9 +152,7 @@ test("an omitted date defaults to today", async () => {
   await createXeroBankTransfer("transfer-key-1", "acc-from", "acc-to", 10);
 
   const sent = client.accountingApi.createBankTransfer.mock.calls[0][1];
-  expect(sent.bankTransfers[0].date).toBe(
-    new Date().toISOString().split("T")[0],
-  );
+  expect(sent.bankTransfers[0].date).toBe(todayIsoDate());
 });
 
 test("a date that is not on the calendar is refused before the write", async () => {

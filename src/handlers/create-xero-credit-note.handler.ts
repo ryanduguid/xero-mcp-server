@@ -3,6 +3,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { CreditNote } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { todayIsoDate } from "../helpers/xero-date.js";
 
 interface CreditNoteLineItem {
   description: string;
@@ -25,7 +26,7 @@ async function createCreditNote(
       contactID: contactId,
     },
     lineItems: lineItems,
-    date: new Date().toISOString().split("T")[0], // Today's date
+    date: todayIsoDate(),
     reference: reference,
     status: CreditNote.StatusEnum.DRAFT,
   };

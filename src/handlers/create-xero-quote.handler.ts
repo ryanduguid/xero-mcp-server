@@ -3,6 +3,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Quote, QuoteStatusCodes } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { addDaysIsoDate, todayIsoDate } from "../helpers/xero-date.js";
 
 interface QuoteLineItem {
   description: string;
@@ -23,6 +24,7 @@ async function createQuote(
 ): Promise<Quote | undefined> {
   await xeroClient.authenticate();
 
+  const quoteDate = todayIsoDate();
   const quote: Quote = {
     quoteNumber: quoteNumber,
     reference: reference,
@@ -30,11 +32,9 @@ async function createQuote(
     contact: {
       contactID: contactId,
     },
-    date: new Date().toISOString().split("T")[0], // Today's date
+    date: quoteDate,
     lineItems: lineItems,
-    expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0], // 7 days from now
+    expiryDate: addDaysIsoDate(quoteDate, 7),
     status: QuoteStatusCodes.DRAFT,
     title: title,
     summary: summary,
