@@ -3,6 +3,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Payment } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { todayIsoDate } from "../helpers/xero-date.js";
 
 type PaymentProps = {
   idempotencyKey: string;
@@ -34,7 +35,7 @@ async function createPayment({
       accountID: accountId,
     },
     amount: amount,
-    date: date || new Date().toISOString().split("T")[0], // Today's date if not specified
+    date: date || todayIsoDate(),
     reference: reference,
   };
 

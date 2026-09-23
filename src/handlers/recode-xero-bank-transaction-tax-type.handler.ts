@@ -109,6 +109,13 @@ async function writeTaxType(
     }),
   };
 
+  // The totals were also worked out under the old tax type. On a
+  // tax-exclusive transaction they no longer match the recoded lines, so
+  // leave them for Xero to recalculate.
+  delete recoded.subTotal;
+  delete recoded.totalTax;
+  delete recoded.total;
+
   await xeroClient.accountingApi.updateBankTransaction(
     xeroClient.tenantId, // xeroTenantId
     bankTransactionId, // bankTransactionID

@@ -3,6 +3,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Invoice, LineItemTracking } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { addDaysIsoDate, todayIsoDate } from "../helpers/xero-date.js";
 
 interface InvoiceLineItem {
   description: string;
@@ -23,9 +24,7 @@ async function createInvoice(
 ): Promise<Invoice | undefined> {
   await xeroClient.authenticate();
 
-  const invoiceDate = date || new Date().toISOString().split("T")[0];
-  const dueDate = new Date(`${invoiceDate}T00:00:00Z`);
-  dueDate.setUTCDate(dueDate.getUTCDate() + 30);
+  const invoiceDate = date || todayIsoDate();
 
   const invoice: Invoice = {
     type: type,
@@ -34,7 +33,7 @@ async function createInvoice(
     },
     lineItems: lineItems,
     date: invoiceDate,
-    dueDate: dueDate.toISOString().split("T")[0],
+    dueDate: addDaysIsoDate(invoiceDate, 30),
     ...(type === Invoice.TypeEnum.ACCPAY
       ? { invoiceNumber: reference }
       : { reference: reference }),
