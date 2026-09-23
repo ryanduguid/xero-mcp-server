@@ -43,11 +43,23 @@ export async function getPayrollRegion(): Promise<PayrollRegion> {
   return region;
 }
 
-export async function assertAustralianPayroll(toolName: string): Promise<void> {
-  const region = await getPayrollRegion();
-  if (region !== "AU") {
+const REGION_NAMES = { AU: "Australian", NZ: "New Zealand", UK: "UK" } as const;
+
+async function assertPayrollRegion(
+  expected: keyof typeof REGION_NAMES,
+  toolName: string,
+): Promise<void> {
+  if ((await getPayrollRegion()) !== expected) {
     throw new Error(
-      `${toolName} reads Xero Payroll AU. It is only available for Australian organisations.`,
+      `${toolName} uses Xero Payroll ${expected}. It is only available for ${REGION_NAMES[expected]} organisations.`,
     );
   }
+}
+
+export function assertAustralianPayroll(toolName: string): Promise<void> {
+  return assertPayrollRegion("AU", toolName);
+}
+
+export function assertNewZealandPayroll(toolName: string): Promise<void> {
+  return assertPayrollRegion("NZ", toolName);
 }
