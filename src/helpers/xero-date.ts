@@ -77,7 +77,8 @@ export function todayIsoDate(now: Date = new Date()): string {
  */
 export function addDaysIsoDate(value: string, days: number): string {
   const { year, month, day } = assertIsoDate("date", value);
-  return new Date(Date.UTC(year, month - 1, day + days))
-    .toISOString()
-    .split("T")[0];
+  // setUTCFullYear, unlike Date.UTC, does not read years 0 to 99 as 1900 to 1999.
+  const date = new Date(0);
+  date.setUTCFullYear(year, month - 1, day + days);
+  return date.toISOString().split("T")[0];
 }
