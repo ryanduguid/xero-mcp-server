@@ -23,7 +23,9 @@ export function assertIsoDate(field: string, value: string): CalendarDate {
   }
 
   const [year, month, day] = match.slice(1).map(Number);
-  const parsed = new Date(Date.UTC(year, month - 1, day));
+  // setUTCFullYear, unlike Date.UTC, does not read years 0 to 99 as 1900 to 1999.
+  const parsed = new Date(0);
+  parsed.setUTCFullYear(year, month - 1, day);
 
   if (parsed.getUTCMonth() !== month - 1 || parsed.getUTCDate() !== day) {
     throw new Error(`${field} is not a date on the calendar: "${value}"`);
@@ -77,7 +79,6 @@ export function todayIsoDate(now: Date = new Date()): string {
  */
 export function addDaysIsoDate(value: string, days: number): string {
   const { year, month, day } = assertIsoDate("date", value);
-  // setUTCFullYear, unlike Date.UTC, does not read years 0 to 99 as 1900 to 1999.
   const date = new Date(0);
   date.setUTCFullYear(year, month - 1, day + days);
   return date.toISOString().split("T")[0];
