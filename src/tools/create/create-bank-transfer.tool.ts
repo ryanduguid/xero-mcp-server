@@ -29,7 +29,7 @@ const CreateBankTransferTool = CreateXeroTool(
       .string()
       .optional()
       .describe(
-        "Transfer date as YYYY-MM-DD. Defaults to today's UTC date, which can differ from the local date.",
+        "Transfer date as YYYY-MM-DD. Defaults to today's date in the server's time zone (set TZ to change it).",
       ),
   },
   async ({ idempotencyKey, fromBankAccountId, toBankAccountId, amount, date }) => {

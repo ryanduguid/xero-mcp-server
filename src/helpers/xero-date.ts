@@ -23,7 +23,9 @@ export function assertIsoDate(field: string, value: string): CalendarDate {
   }
 
   const [year, month, day] = match.slice(1).map(Number);
-  const parsed = new Date(Date.UTC(year, month - 1, day));
+  // setUTCFullYear, unlike Date.UTC, does not read years 0 to 99 as 1900 to 1999.
+  const parsed = new Date(0);
+  parsed.setUTCFullYear(year, month - 1, day);
 
   if (parsed.getUTCMonth() !== month - 1 || parsed.getUTCDate() !== day) {
     throw new Error(`${field} is not a date on the calendar: "${value}"`);
@@ -56,4 +58,28 @@ export function toXeroDateFilter(field: string, value: string): string {
   const { year, month, day } = assertIsoDate(field, value);
 
   return `DateTime(${year},${month},${day})`;
+}
+
+/**
+ * Today's date where this server runs, as YYYY-MM-DD.
+ *
+ * toISOString() gives the UTC date. In Australia that is still yesterday
+ * until 10:00 AEST (11:00 AEDT), so a morning entry on 1 July landed in the
+ * previous financial year. Set TZ to the organisation's time zone when the
+ * server runs somewhere else.
+ */
+export function todayIsoDate(now: Date = new Date()): string {
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${now.getFullYear()}-${month}-${day}`;
+}
+
+/**
+ * Move a YYYY-MM-DD date by whole calendar days.
+ */
+export function addDaysIsoDate(value: string, days: number): string {
+  const { year, month, day } = assertIsoDate("date", value);
+  const date = new Date(0);
+  date.setUTCFullYear(year, month - 1, day + days);
+  return date.toISOString().split("T")[0];
 }

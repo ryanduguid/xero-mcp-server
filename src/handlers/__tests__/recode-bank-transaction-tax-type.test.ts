@@ -171,6 +171,25 @@ test("the tax worked out under the old rate is not sent back", async () => {
   expect(sent.lineItems[0]).not.toHaveProperty("taxAmount");
 });
 
+test("totals worked out under the old tax type are not sent back", async () => {
+  client.accountingApi.getBankTransaction.mockResolvedValue({
+    body: {
+      bankTransactions: [
+        bankTransaction({ subTotal: 100, totalTax: 0, total: 100 }),
+      ],
+    },
+  });
+
+  await recodeXeroBankTransactionTaxType([TRANSACTION_ID], "INPUT");
+
+  const sent =
+    client.accountingApi.updateBankTransaction.mock.calls[0][2]
+      .bankTransactions[0];
+  expect(sent).not.toHaveProperty("subTotal");
+  expect(sent).not.toHaveProperty("totalTax");
+  expect(sent).not.toHaveProperty("total");
+});
+
 test("a reconciled transaction is left alone and reported as blocked", async () => {
   client.accountingApi.getBankTransaction.mockResolvedValue({
     body: { bankTransactions: [bankTransaction({ isReconciled: true })] },
