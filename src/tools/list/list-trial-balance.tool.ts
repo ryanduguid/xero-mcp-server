@@ -8,7 +8,7 @@ import {
 
 const ListTrialBalanceTool = CreateXeroTool(
   "list-trial-balance",
-  "Lists the Xero trial balance. Debit/Credit are the current-month movement; YTD Debit/YTD Credit are as-at balances. Both pairs must balance exactly or the tool returns Integrity BLOCKED and withholds the row pack. PASS is not close approval.",
+  "Lists the Xero trial balance. Debit/Credit are the current-month movement; YTD Debit/YTD Credit are as-at balances. Both pairs must balance exactly or the tool returns Integrity BLOCKED and withholds the report rows. A PASS does not approve the period close.",
   {
     date: z.string().optional().describe("Optional date in YYYY-MM-DD format"),
     paymentsOnly: z.boolean().optional().describe("Optional flag to include only accounts with payments"),

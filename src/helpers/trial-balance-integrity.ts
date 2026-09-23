@@ -7,11 +7,10 @@
  * (scaled BigInt), never IEEE float.
  *
  * PASS means the pairs balance. BLOCKED means the report is truncated,
- * misparsed, or a shape the helper does not recognise. READY is not a
- * status here: a balanced report is still for human review.
+ * misparsed, or a shape the helper does not recognise. A balanced report
+ * still needs human review.
  */
 
-const MAX_EXPONENT = 30;
 const REQUIRED_COLUMNS = ["Account", "Debit", "Credit", "YTD Debit", "YTD Credit"] as const;
 
 export type ReportCell = {
@@ -81,33 +80,13 @@ export function parseAmount(value: unknown): Amount | { error: string } {
 }
 
 function parseAmountString(text: string): Amount | { error: string } {
-  const match = text.match(/^([+-])?(\d+)(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
+  // Report amounts are plain decimals; anything else (including exponents) is refused.
+  const match = text.match(/^([+-]?\d+)(?:\.(\d+))?$/);
   if (!match) {
     return { error: `report cell "${shown(text)}" is not an amount` };
   }
-  const sign = match[1] === "-" ? -1n : 1n;
-  const whole = match[2];
-  const frac = match[3] ?? "";
-  const exp = match[4] == null ? 0 : Number(match[4]);
-  const digits = whole + frac;
-  const scale = frac.length - exp;
-  if (digits.replace(/0/g, "").length === 0) {
-    return { n: 0n, scale: 0 };
-  }
-  const exponent = digits.length - 1 - scale;
-  if (exponent > MAX_EXPONENT) {
-    return {
-      error: `report cell "${shown(text)}" is ${exponent + 1} digits long, which is not a ledger balance`,
-    };
-  }
-  if (exponent < -MAX_EXPONENT) {
-    return {
-      error: `report cell "${shown(text)}" is smaller than any ledger balance`,
-    };
-  }
-  let n = BigInt(digits);
-  if (sign < 0n) n = -n;
-  return { n, scale };
+  const frac = match[2] ?? "";
+  return { n: BigInt(match[1] + frac), scale: frac.length };
 }
 
 export function addAmounts(a: Amount, b: Amount): Amount {
@@ -131,10 +110,8 @@ export function formatAmount(amount: Amount): string {
   }
   const negative = amount.n < 0n;
   const digits = (negative ? -amount.n : amount.n).toString();
-  if (amount.scale <= 0) {
-    const zeros = "0".repeat(-amount.scale);
-    const whole = digits + zeros;
-    return `${negative ? "-" : ""}${whole}.00`;
+  if (amount.scale === 0) {
+    return `${negative ? "-" : ""}${digits}.00`;
   }
   const padded = digits.padStart(amount.scale + 1, "0");
   const split = padded.length - amount.scale;
@@ -353,7 +330,7 @@ export function assessTrialBalanceIntegrity(report: TrialBalanceReport | null | 
   }
   return {
     status: "BLOCKED",
-    reason: `Nothing returned as a usable pack — ${parts.join("; ")}. Report likely truncated or misparsed.`,
+    reason: `Trial balance withheld: ${parts.join("; ")}. The report may be truncated or misparsed.`,
     ...snapshot,
   };
 }
@@ -363,7 +340,7 @@ export function formatIntegrityMessage(result: IntegrityResult): string {
     return (
       `Integrity PASS: movement debits = credits = ${result.movementDebits}; ` +
       `YTD = ${result.ytdDebits} (${result.accountRows} account rows). ` +
-      "PASS is not close approval."
+      "Balanced totals do not approve the period close."
     );
   }
   return `Integrity BLOCKED: ${result.reason}`;

@@ -64,9 +64,14 @@ describe("parseAmount", () => {
     expect(formatAmount({ n: 30n, scale: 2 })).toBe("0.30");
   });
 
-  it("refuses non-amounts", () => {
-    const result = parseAmount("n/a");
-    expect(result).toEqual(expect.objectContaining({ error: expect.stringContaining("not an amount") }));
+  it.each(["n/a", "1e3", "1,000.00", "."])("refuses non-amounts: %s", (text) => {
+    expect(parseAmount(text)).toEqual(expect.objectContaining({ error: expect.stringContaining("not an amount") }));
+  });
+
+  it("parses signs and whole numbers", () => {
+    expect(parseAmount("-12.5")).toEqual({ n: -125n, scale: 1 });
+    expect(parseAmount("+7")).toEqual({ n: 7n, scale: 0 });
+    expect(parseAmount(42)).toEqual({ n: 42n, scale: 0 });
   });
 });
 
@@ -113,7 +118,7 @@ describe("assessTrialBalanceIntegrity", () => {
     expect(result.movementCredits).toBe("100.00");
     expect(result.ytdDebits).toBe("400.00");
     expect(result.ytdCredits).toBe("400.00");
-    expect(formatIntegrityMessage(result)).toContain("PASS is not close approval");
+    expect(formatIntegrityMessage(result)).toContain("do not approve the period close");
   });
 
   it("BLOCKs when movement is unbalanced even if YTD balances", () => {
@@ -126,7 +131,7 @@ describe("assessTrialBalanceIntegrity", () => {
     expect(result.status).toBe("BLOCKED");
     if (result.status !== "BLOCKED") return;
     expect(result.reason).toContain("movement");
-    expect(result.reason).toContain("Nothing returned as a usable pack");
+    expect(result.reason).toContain("Trial balance withheld");
   });
 
   it("BLOCKs when YTD is unbalanced even if movement balances", () => {
