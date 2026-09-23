@@ -75,6 +75,30 @@ describe("getXeroQuote", () => {
     );
   });
 
+  it("returns only a quote whose number matches exactly", async () => {
+    mockAccountingApi.getQuotes.mockResolvedValue({
+      body: {
+        quotes: [{ ...quote, quoteID: "q-70", quoteNumber: "QU-00070" }, quote],
+      },
+    });
+
+    const result = await getXeroQuote({ quoteNumber: "QU-0007" });
+
+    expect(result.isError).toBe(false);
+    if (result.isError) return;
+    expect(result.result.quoteID).toBe("q-1");
+  });
+
+  it("reports a missing quote when no number matches exactly", async () => {
+    mockAccountingApi.getQuotes.mockResolvedValue({
+      body: { quotes: [{ ...quote, quoteNumber: "QU-00070" }] },
+    });
+
+    const result = await getXeroQuote({ quoteNumber: "QU-0007" });
+
+    expect(result.isError).toBe(true);
+  });
+
   it("prefers quote ID when both identifiers are provided", async () => {
     mockAccountingApi.getQuote.mockResolvedValue({
       body: { quotes: [quote] },

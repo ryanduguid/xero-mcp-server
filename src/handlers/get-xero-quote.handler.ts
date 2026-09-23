@@ -38,7 +38,10 @@ async function fetchQuoteByNumber(
     getClientHeaders(),
   );
 
-  return response.body.quotes?.[0];
+  // Match the number exactly in case the filter returns similar numbers.
+  return response.body.quotes?.find(
+    (quote) => quote.quoteNumber === quoteNumber,
+  );
 }
 
 /**
