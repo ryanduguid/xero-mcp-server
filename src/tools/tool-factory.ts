@@ -38,11 +38,18 @@ const CATEGORIES: [(() => ToolDefinition<ZodRawShapeCompat>)[], ToolAnnotations]
   [UpdateTools, CHANGE],
 ];
 
-// A value other than true or false stops the server, so a mistyped setting
-// cannot quietly register the write tools.
+// Recoding writes nothing when every line already has the requested tax type,
+// so repeating the same call has no further effect.
+const IDEMPOTENT_CHANGES = new Set(["recode-bank-transaction-tax-type"]);
+
+// Unset or empty keeps every tool. Any other value except true or false,
+// blank space included, stops the server, so a mistyped setting cannot
+// quietly register the write tools.
 function readOnlyMode(env: NodeJS.ProcessEnv): boolean {
-  const value = env.XERO_READ_ONLY?.trim().toLowerCase();
-  if (!value || value === "false") return false;
+  const raw = env.XERO_READ_ONLY;
+  if (raw === undefined || raw === "") return false;
+  const value = raw.trim().toLowerCase();
+  if (value === "false") return false;
   if (value === "true") return true;
   throw new Error("XERO_READ_ONLY must be true or false.");
 }
@@ -61,7 +68,9 @@ export function ToolFactory(
           tool.name,
           tool.description,
           tool.schema,
-          annotations,
+          IDEMPOTENT_CHANGES.has(tool.name)
+            ? { ...annotations, idempotentHint: true }
+            : annotations,
           tool.handler,
         ),
       );

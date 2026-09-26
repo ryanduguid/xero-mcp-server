@@ -129,7 +129,8 @@ describe("ToolFactory", () => {
       expect(annotations.get(name), name).toEqual({
         readOnlyHint: false,
         destructiveHint: true,
-        idempotentHint: false,
+        // Recoding skips the write when the tax type is already applied.
+        idempotentHint: name === "recode-bank-transaction-tax-type",
         openWorldHint: true,
       });
     }
@@ -156,7 +157,7 @@ describe("ToolFactory", () => {
     },
   );
 
-  it.each(["yes", "1", "ture"])(
+  it.each(["yes", "1", "ture", " ", "\t\n"])(
     "refuses to register anything when XERO_READ_ONLY is %j",
     (value) => {
       expect(() => register({ XERO_READ_ONLY: value })).toThrow(
