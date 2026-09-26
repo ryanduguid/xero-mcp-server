@@ -1,26 +1,69 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { ZodRawShapeCompat } from "@modelcontextprotocol/sdk/server/zod-compat.js";
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 
+import { ToolDefinition } from "../types/tool-definition.js";
 import { CreateTools } from "./create/index.js";
 import { DeleteTools } from "./delete/index.js";
 import { GetTools } from "./get/index.js";
 import { ListTools } from "./list/index.js";
 import { UpdateTools } from "./update/index.js";
 
-export function ToolFactory(server: McpServer) {
+// Annotations are hints to the MCP client. They do not stop a call: the client
+// still decides what needs approval, and Xero enforces the token's scopes.
+const READ: ToolAnnotations = {
+  readOnlyHint: true,
+  destructiveHint: false,
+  idempotentHint: true,
+  openWorldHint: true,
+};
+const CREATE: ToolAnnotations = {
+  readOnlyHint: false,
+  destructiveHint: false,
+  idempotentHint: false,
+  openWorldHint: true,
+};
+const CHANGE: ToolAnnotations = {
+  readOnlyHint: false,
+  destructiveHint: true,
+  idempotentHint: false,
+  openWorldHint: true,
+};
 
-  DeleteTools.map((tool) => tool()).forEach((tool) =>
-    server.tool(tool.name, tool.description, tool.schema, tool.handler),
-  );
-  GetTools.map((tool) => tool()).forEach((tool) =>
-    server.tool(tool.name, tool.description, tool.schema, tool.handler),
-  );
-  CreateTools.map((tool) => tool()).forEach((tool) =>
-    server.tool(tool.name, tool.description, tool.schema, tool.handler),
-  );
-  ListTools.map((tool) => tool()).forEach((tool) =>
-    server.tool(tool.name, tool.description, tool.schema, tool.handler),
-  );
-  UpdateTools.map((tool) => tool()).forEach((tool) =>
-    server.tool(tool.name, tool.description, tool.schema, tool.handler),
-  );
+const CATEGORIES: [(() => ToolDefinition<ZodRawShapeCompat>)[], ToolAnnotations][] = [
+  [DeleteTools, CHANGE],
+  [GetTools, READ],
+  [CreateTools, CREATE],
+  [ListTools, READ],
+  [UpdateTools, CHANGE],
+];
+
+// A value other than true or false stops the server, so a mistyped setting
+// cannot quietly register the write tools.
+function readOnlyMode(env: NodeJS.ProcessEnv): boolean {
+  const value = env.XERO_READ_ONLY?.trim().toLowerCase();
+  if (!value || value === "false") return false;
+  if (value === "true") return true;
+  throw new Error("XERO_READ_ONLY must be true or false.");
+}
+
+export function ToolFactory(
+  server: McpServer,
+  env: NodeJS.ProcessEnv = process.env,
+) {
+  const readOnly = readOnlyMode(env);
+  for (const [tools, annotations] of CATEGORIES) {
+    if (readOnly && !annotations.readOnlyHint) continue;
+    tools
+      .map((tool) => tool())
+      .forEach((tool) =>
+        server.tool(
+          tool.name,
+          tool.description,
+          tool.schema,
+          annotations,
+          tool.handler,
+        ),
+      );
+  }
 }

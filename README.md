@@ -142,6 +142,14 @@ payroll.timesheets
 ```
 
 
+### Read-only mode and tool annotations
+
+Each tool carries MCP annotations describing what it does. `get-` and `list-` tools are marked read-only. `create-` tools are marked additive but not safe to repeat, because a second call creates a second record. Every other tool changes an existing record, by updating, approving, reverting, recoding or deleting it, and is marked destructive. All of them reach Xero, so all are marked open-world. The MCP client decides what to do with these hints, such as asking before each write; they do not block a call.
+
+To offer only the `get-` and `list-` tools, add `"XERO_READ_ONLY": "true"` to the server's `env`. A value other than `true` or `false` stops the server from starting, so a mistyped setting cannot leave the write tools on.
+
+Read-only mode changes what this server offers, not what the Xero connection permits. To have Xero refuse writes as well, use a connection or token with read scopes only.
+
 ### Available MCP Commands
 
 - `list-accounts`: Retrieve a list of accounts
