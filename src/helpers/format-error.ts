@@ -26,6 +26,14 @@ interface XeroSdkError {
   };
 }
 
+function parseJson(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return undefined;
+  }
+}
+
 function isXeroSdkError(error: unknown): error is XeroSdkError {
   if (typeof error !== "object" || error === null) return false;
   const response = (error as { response?: unknown }).response;
@@ -127,6 +135,16 @@ export function formatError(error: unknown): string {
       if (mapped) return mapped;
     }
     return detail || "An error occurred while communicating with Xero.";
+  }
+
+  // xero-node 13 rejects with JSON.stringify(apiError.generateError()), whose
+  // response.request.headers carries the bearer token. Parse it and read only
+  // the allow-listed fields below; never return the string itself.
+  if (typeof error === "string") {
+    const parsed = parseJson(error);
+    return isXeroSdkError(parsed)
+      ? formatError(parsed)
+      : "An unexpected error occurred while communicating with Xero.";
   }
 
   if (isXeroSdkError(error)) {

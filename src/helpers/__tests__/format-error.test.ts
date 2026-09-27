@@ -1,6 +1,22 @@
 import { describe, it, expect } from "vitest";
 import { AxiosError, AxiosHeaders } from "axios";
+import { ApiError } from "xero-node/dist/model/ApiError.js";
 import { formatError } from "../format-error.js";
+
+const TOKEN = "SYNTHETIC-ACCESS-TOKEN-0000";
+
+// What xero-node 13.3.0 rejects with: JSON.stringify(new ApiError(err).generateError()).
+function sdkStringRejection(status: number, data: unknown): string {
+  const request = {
+    protocol: "https:",
+    host: "api.xero.com",
+    path: "/api.xro/2.0/Contacts",
+    method: "POST",
+    getHeaders: () => ({ authorization: `Bearer ${TOKEN}` }),
+  };
+  const apiError = new ApiError({ response: { status, data, headers: {} }, request } as never);
+  return JSON.stringify(apiError.generateError());
+}
 
 function makeAxiosError(status: number, detail?: string): AxiosError {
   const headers = new AxiosHeaders();
@@ -273,6 +289,31 @@ describe("formatError", () => {
       expect(formatError(error)).toBe(
         "An error occurred while communicating with Xero.",
       );
+    });
+  });
+
+  describe("string rejections from xero-node 13", () => {
+    it("reads Xero's validation message from a string 400", () => {
+      const text = formatError(
+        sdkStringRejection(400, {
+          Type: "ValidationException",
+          Message: "A validation exception occurred",
+          Elements: [{ ValidationErrors: [{ Message: "Email address must be valid." }] }],
+        }),
+      );
+      expect(text).toContain("Email address must be valid.");
+      expect(text).not.toContain(TOKEN);
+    });
+
+    it("maps a string 401 to the authentication message", () => {
+      expect(formatError(sdkStringRejection(401, { Title: "Unauthorized" }))).toBe(
+        "Authentication failed. Please check your Xero credentials.",
+      );
+    });
+
+    it("never returns a string it cannot read", () => {
+      const text = formatError(`not json Bearer ${TOKEN}`);
+      expect(text).toBe("An unexpected error occurred while communicating with Xero.");
     });
   });
 });
