@@ -20,6 +20,7 @@ const UpdateManualJournalTool = CreateXeroTool(
         z.object({
           lineAmount: z
             .number()
+            .finite()
             .describe(
               "Total for manual journal line. Debits are positive, credits are negative value",
             ),

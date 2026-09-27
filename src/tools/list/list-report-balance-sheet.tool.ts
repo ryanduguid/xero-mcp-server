@@ -8,7 +8,7 @@ const ListReportBalanceSheetTool = CreateXeroTool(
   "List the Balance Sheet report from Xero.",
   {
     date: z.string().optional().describe("Optional date in YYYY-MM-DD format"),
-    periods: z.number().optional().describe("Optional number of periods to compare"),
+    periods: z.number().finite().optional().describe("Optional number of periods to compare"),
     timeframe: z.enum(["MONTH", "QUARTER", "YEAR"]).optional().describe("Optional timeframe for the report (MONTH, QUARTER, YEAR)"),
     trackingOptionID1: z.string().optional().describe("Optional tracking option ID 1"),
     trackingOptionID2: z.string().optional().describe("Optional tracking option ID 2"),

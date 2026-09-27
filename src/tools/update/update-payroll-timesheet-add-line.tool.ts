@@ -15,7 +15,7 @@ const AddTimesheetLineTool = CreateXeroTool(
     timesheetID: z.string().describe("The ID of the timesheet to update."),
     timesheetLine: z.object({
       earningsRateID: z.string().describe("The ID of the earnings rate."),
-      numberOfUnits: z.number().describe("The number of units for the timesheet line."),
+      numberOfUnits: z.number().finite().describe("The number of units for the timesheet line."),
       date: z.string().describe("The date for the timesheet line (YYYY-MM-DD)."),
     }).describe("The details of the timesheet line to add."),
   },
