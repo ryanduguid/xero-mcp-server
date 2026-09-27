@@ -12,7 +12,7 @@ This is a Model Context Protocol (MCP) server implementation for Xero. It provid
 
 ## Prerequisites
 
-- Node.js (v18 or higher)
+- Node.js 22 for building and testing this fork, matching CI
 - npm or pnpm
 - A Xero developer account with API credentials
 
@@ -153,7 +153,9 @@ Read-only mode changes what this server offers, not what the Xero connection per
 ### Available MCP Commands
 
 - `list-accounts`: Retrieve a list of accounts
+- `list-currencies`: Retrieve the organisation's configured currencies
 - `list-contacts`: Retrieve a list of contacts from Xero
+- `get-contact`: Retrieve one contact by ID
 - `list-credit-notes`: Retrieve a list of credit notes
 - `list-invoices`: Retrieve a list of invoices
 - `list-items`: Retrieve a list of items
@@ -163,8 +165,11 @@ Read-only mode changes what this server offers, not what the Xero connection per
 - `list-quotes`: Retrieve a list of quotes
 - `list-tax-rates`: Retrieve a list of tax rates
 - `list-payments`: Retrieve a list of payments
+- `list-prepayments`: Retrieve a list of prepayments
+- `list-overpayments`: Retrieve a list of overpayments
 - `list-trial-balance`: Retrieve a trial balance report
 - `list-bank-transactions`: Retrieve a list of bank account transactions
+- `list-bank-transfers`: Retrieve a list of transfers between bank accounts
 - `list-payroll-employees`: Retrieve a list of Payroll Employees
 - `list-report-balance-sheet`: Retrieve a balance sheet report
 - `list-payroll-employee-leave`: Retrieve a Payroll Employee's leave records
@@ -178,6 +183,7 @@ Read-only mode changes what this server offers, not what the Xero connection per
 - `list-contact-groups`: Retrieve a list of contact groups
 - `list-tracking-categories`: Retrieve a list of tracking categories
 - `create-bank-transaction`: Create a new bank transaction
+- `create-bank-transfer`: Record a transfer between bank accounts
 - `create-contact`: Create a new contact
 - `create-credit-note`: Create a new credit note
 - `create-invoice`: Create a new invoice
@@ -185,10 +191,11 @@ Read-only mode changes what this server offers, not what the Xero connection per
 - `create-manual-journal`: Create a new manual journal
 - `create-payment`: Create a new payment
 - `create-quote`: Create a new quote
-- `create-payroll-timesheet`: Create a new Payroll Timesheet
+- `create-timesheet`: Create a new Payroll Timesheet
 - `create-tracking-category`: Create a new tracking category
-- `create-tracking-option`: Create a new tracking option
+- `create-tracking-options`: Create tracking options
 - `update-bank-transaction`: Update an existing bank transaction
+- `recode-bank-transaction-tax-type`: Change tax types on specified bank transactions
 - `update-contact`: Update an existing contact
 - `update-invoice`: Update an existing draft invoice
 - `update-item`: Update an existing item
@@ -197,12 +204,12 @@ Read-only mode changes what this server offers, not what the Xero connection per
 - `update-credit-note`: Update an existing draft credit note
 - `update-tracking-category`: Update an existing tracking category
 - `update-tracking-options`: Update tracking options
-- `update-payroll-timesheet-line`: Update a line on an existing Payroll Timesheet
-- `approve-payroll-timesheet`: Approve a Payroll Timesheet
-- `revert-payroll-timesheet`: Revert an approved Payroll Timesheet
-- `add-payroll-timesheet-line`: Add new line on an existing Payroll Timesheet
-- `delete-payroll-timesheet`: Delete an existing Payroll Timesheet
-- `get-payroll-timesheet`: Retrieve an existing Payroll Timesheet
+- `update-timesheet-line`: Update a line on an existing Payroll Timesheet
+- `approve-timesheet`: Approve a Payroll Timesheet
+- `revert-timesheet`: Revert an approved Payroll Timesheet
+- `add-timesheet-line`: Add new line on an existing Payroll Timesheet
+- `delete-timesheet`: Delete an existing Payroll Timesheet
+- `get-timesheet`: Retrieve an existing Payroll Timesheet
 
 For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
 
