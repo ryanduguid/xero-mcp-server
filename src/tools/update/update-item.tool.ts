@@ -3,7 +3,7 @@ import { updateXeroItem } from "../../handlers/update-xero-item.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const purchaseDetailsSchema = z.object({
-  unitPrice: z.number().optional(),
+  unitPrice: z.number().finite().optional(),
   taxType: z.string().optional(),
   accountCode: z.string().optional(),
   cOGSAccountCode: z
@@ -15,7 +15,7 @@ const purchaseDetailsSchema = z.object({
 });
 
 const salesDetailsSchema = z.object({
-  unitPrice: z.number().optional(),
+  unitPrice: z.number().finite().optional(),
   taxType: z.string().optional(),
   accountCode: z.string().optional(),
 });

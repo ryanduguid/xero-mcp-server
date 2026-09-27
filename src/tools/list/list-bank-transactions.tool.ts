@@ -16,7 +16,7 @@ const ListBankTransactionsTool = CreateXeroTool(
   A contact and a date range are how to find the transactions behind a contact's
   balance or a miscoded period.`,
   {
-    page: z.number(),
+    page: z.number().finite(),
     bankAccountId: z.string().optional(),
     contactId: z
       .string()

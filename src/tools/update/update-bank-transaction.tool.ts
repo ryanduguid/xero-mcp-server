@@ -5,8 +5,8 @@ import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 
 const lineItemSchema = z.object({
   description: z.string(),
-  quantity: z.number(),
-  unitAmount: z.number(),
+  quantity: z.number().finite(),
+  unitAmount: z.number().finite(),
   accountCode: z.string(),
   taxType: z.string(),
 });
