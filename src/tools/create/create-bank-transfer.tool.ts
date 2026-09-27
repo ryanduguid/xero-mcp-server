@@ -23,6 +23,7 @@ const CreateBankTransferTool = CreateXeroTool(
       .describe("Xero account ID of the bank account the money arrives in."),
     amount: z
       .number()
+      .finite()
       .positive()
       .describe("Amount to transfer, in the currency of both accounts."),
     date: z

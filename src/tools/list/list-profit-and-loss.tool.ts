@@ -8,7 +8,7 @@ const ListProfitAndLossTool = CreateXeroTool(
   {
     fromDate: z.string().optional().describe("Optional start date in YYYY-MM-DD format"),
     toDate: z.string().optional().describe("Optional end date in YYYY-MM-DD format"),
-    periods: z.number().optional().describe("Optional number of periods to compare"),
+    periods: z.number().finite().optional().describe("Optional number of periods to compare"),
     timeframe: z.enum(["MONTH", "QUARTER", "YEAR"]).optional().describe("Optional timeframe for the report (MONTH, QUARTER, YEAR)"),
     standardLayout: z.boolean().optional().describe("Optional flag to use standard layout"),
     paymentsOnly: z.boolean().optional().describe("Optional flag to report on cash transactions only, that is amounts actually paid, rather than the accrual view"),

@@ -22,6 +22,7 @@ const CreatePaymentTool = CreateXeroTool(
       .describe("The ID of the account the payment is made from"),
     amount: z
       .number()
+      .finite()
       .positive()
       .describe("The amount of the payment (must be positive)"),
     date: z

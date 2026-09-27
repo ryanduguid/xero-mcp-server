@@ -13,8 +13,8 @@ const trackingSchema = z.object({
 
 const lineItemSchema = z.object({
   description: z.string().describe("The description of the line item"),
-  quantity: z.number().describe("The quantity of the line item"),
-  unitAmount: z.number().describe("The price per unit of the line item"),
+  quantity: z.number().finite().describe("The quantity of the line item"),
+  unitAmount: z.number().finite().describe("The price per unit of the line item"),
   accountCode: z.string().describe("The account code of the line item - can be obtained from the list-accounts tool"),
   taxType: z.string().describe("The tax type of the line item - can be obtained from the list-tax-rates tool"),
   itemCode: z.string().describe("The item code of the line item - can be obtained from the list-items tool \
