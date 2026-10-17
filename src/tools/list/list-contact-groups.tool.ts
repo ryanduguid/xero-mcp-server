@@ -33,9 +33,9 @@ const ListContactGroupsTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${contactGroups?.length || 0} contact groups:`,
+          text: `Found ${contactGroups.length} contact groups:`,
         },
-        ...(contactGroups?.map((contactGroup) => ({
+        ...contactGroups.map((contactGroup) => ({
           type: "text" as const,
           text: [
             `Contact Group ID: ${contactGroup.contactGroupID}`,
@@ -51,7 +51,7 @@ const ListContactGroupsTool = CreateXeroTool(
           ]
             .filter(Boolean)
             .join("\n"),
-        })) || []),
+        })),
       ],
     };
   },

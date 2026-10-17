@@ -31,9 +31,9 @@ This retrieves comprehensive timesheet details including timesheet IDs, employee
       content: [
         {
           type: "text" as const,
-          text: `Found ${timesheets?.length || 0} timesheets:`,
+          text: `Found ${timesheets.length} timesheets:`,
         },
-        ...(timesheets?.map((timesheet: Timesheet) => ({
+        ...timesheets.map((timesheet: Timesheet) => ({
           type: "text" as const,
           text: [
             `Timesheet ID: ${timesheet.timesheetID}`,
@@ -45,7 +45,7 @@ This retrieves comprehensive timesheet details including timesheet IDs, employee
           ]
             .filter(Boolean)
             .join("\n"),
-        })) || []),
+        })),
       ],
     };
   },

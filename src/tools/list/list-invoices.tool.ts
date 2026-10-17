@@ -41,9 +41,9 @@ const ListInvoicesTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${invoices?.length || 0} invoices:`,
+          text: `Found ${invoices.length} invoices:`,
         },
-        ...(invoices?.map((invoice) => ({
+        ...invoices.map((invoice) => ({
           type: "text" as const,
           text: [
             `Invoice ID: ${invoice.invoiceID}`,
@@ -88,7 +88,7 @@ const ListInvoicesTool = CreateXeroTool(
           ]
             .filter(Boolean)
             .join("\n"),
-        })) || []),
+        })),
       ],
     };
   },

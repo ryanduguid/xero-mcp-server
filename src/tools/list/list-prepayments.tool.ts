@@ -40,9 +40,9 @@ const ListPrepaymentsTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${prepayments?.length || 0} prepayments:`,
+          text: `Found ${prepayments.length} prepayments:`,
         },
-        ...(prepayments?.map((prepayment) => ({
+        ...prepayments.map((prepayment) => ({
           type: "text" as const,
           text: [
             `Prepayment: ${prepayment.prepaymentID || "Unknown ID"}`,
@@ -56,7 +56,7 @@ const ListPrepaymentsTool = CreateXeroTool(
           ]
             .filter(Boolean)
             .join("\n"),
-        })) || []),
+        })),
       ],
     };
   },

@@ -79,12 +79,12 @@ const ListPaymentsTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${payments?.length || 0} payments:`,
+          text: `Found ${payments.length} payments:`,
         },
-        ...(payments?.map((payment) => ({
+        ...payments.map((payment) => ({
           type: "text" as const,
           text: paymentFormatter(payment),
-        })) || []),
+        })),
       ],
     };
   },

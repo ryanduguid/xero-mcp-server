@@ -29,9 +29,9 @@ const ListPayrollEmployeeLeaveBalancesTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${leaveBalances?.length || 0} leave balances for employee ${employeeId}:`,
+          text: `Found ${leaveBalances.length} leave balances for employee ${employeeId}:`,
         },
-        ...(leaveBalances?.map((balance: EmployeeLeaveBalance) => ({
+        ...leaveBalances.map((balance: EmployeeLeaveBalance) => ({
           type: "text" as const,
           text: [
             `Leave Type ID: ${balance.leaveTypeID || "Unknown"}`,
@@ -41,7 +41,7 @@ const ListPayrollEmployeeLeaveBalancesTool = CreateXeroTool(
           ]
             .filter(Boolean)
             .join("\n"),
-        })) || []),
+        })),
       ],
     };
   },

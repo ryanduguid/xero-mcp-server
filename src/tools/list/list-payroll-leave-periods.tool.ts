@@ -31,9 +31,9 @@ const ListPayrollLeavePeriodsToolTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${periods?.length || 0} leave periods for employee ${employeeId}:`,
+          text: `Found ${periods.length} leave periods for employee ${employeeId}:`,
         },
-        ...(periods?.map((period: LeavePeriod) => ({
+        ...periods.map((period: LeavePeriod) => ({
           type: "text" as const,
           text: [
             `Period Status: ${period.periodStatus || "Unknown"}`,
@@ -46,7 +46,7 @@ const ListPayrollLeavePeriodsToolTool = CreateXeroTool(
           ]
             .filter(Boolean)
             .join("\n"),
-        })) || []),
+        })),
       ],
     };
   },

@@ -25,9 +25,9 @@ const ListTaxRatesTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${taxRates?.length || 0} tax rates:`,
+          text: `Found ${taxRates.length} tax rates:`,
         },
-        ...(taxRates?.map((taxRate) => ({
+        ...taxRates.map((taxRate) => ({
           type: "text" as const,
           text: [
             `Tax Rate: ${taxRate.name || "Unnamed"}`,
@@ -53,7 +53,7 @@ const ListTaxRatesTool = CreateXeroTool(
           ]
             .filter(Boolean)
             .join("\n"),
-        })) || []),
+        })),
       ],
     };
   },

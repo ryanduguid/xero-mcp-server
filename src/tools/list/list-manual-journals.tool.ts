@@ -50,9 +50,9 @@ If they want the next page, call this tool again with the next page number, modi
       content: [
         {
           type: "text" as const,
-          text: `Found ${manualJournals?.length || 0} manual journals:`,
+          text: `Found ${manualJournals.length} manual journals:`,
         },
-        ...(manualJournals?.map((journal: ManualJournal) => ({
+        ...manualJournals.map((journal: ManualJournal) => ({
           type: "text" as const,
           text: [
             `Manual Journal ID: ${journal.manualJournalID}`,
@@ -90,7 +90,7 @@ If they want the next page, call this tool again with the next page number, modi
           ]
             .filter(Boolean)
             .join("\n"),
-        })) || []),
+        })),
       ],
     };
   },

@@ -26,9 +26,9 @@ const ListItemsTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${items?.length || 0} items:`,
+          text: `Found ${items.length} items:`,
         },
-        ...(items?.map((item) => ({
+        ...items.map((item) => ({
           type: "text" as const,
           text: [
             `Item: ${item.name || "Unnamed"}`,
@@ -48,7 +48,7 @@ const ListItemsTool = CreateXeroTool(
           ]
             .filter(Boolean)
             .join("\n"),
-        })) || []),
+        })),
       ],
     };
   },

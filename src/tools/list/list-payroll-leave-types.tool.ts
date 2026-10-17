@@ -26,8 +26,8 @@ const ListPayrollLeaveTypesTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${leaveTypes?.length || 0} payroll leave types:`,
-        },        ...(leaveTypes?.map((leaveType: LeaveType) => ({
+          text: `Found ${leaveTypes.length} payroll leave types:`,
+        },        ...leaveTypes.map((leaveType: LeaveType) => ({
           type: "text" as const,
           text: [
             `Leave Type: ${leaveType.name || "Unnamed"}`,
@@ -41,7 +41,7 @@ const ListPayrollLeaveTypesTool = CreateXeroTool(
           ]
             .filter(Boolean)
             .join("\n"),
-        })) || []),
+        })),
       ],
     };
   },

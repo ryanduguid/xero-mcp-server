@@ -29,9 +29,9 @@ const ListPayrollEmployeeLeaveTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${leave?.length || 0} leave records for employee ${employeeId}:`,
+          text: `Found ${leave.length} leave records for employee ${employeeId}:`,
         },
-        ...(leave?.map((leaveItem: EmployeeLeave) => ({
+        ...leave.map((leaveItem: EmployeeLeave) => ({
           type: "text" as const,
           text: [
             `Leave ID: ${leaveItem.leaveID || "Unknown"}`,
@@ -44,7 +44,7 @@ const ListPayrollEmployeeLeaveTool = CreateXeroTool(
           ]
             .filter(Boolean)
             .join("\n"),
-        })) || []),
+        })),
       ],
     };
   },

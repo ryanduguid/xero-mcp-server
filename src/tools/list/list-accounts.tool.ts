@@ -25,9 +25,9 @@ const ListAccountsTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${accounts?.length || 0} accounts:`,
+          text: `Found ${accounts.length} accounts:`,
         },
-        ...(accounts?.map((account) => ({
+        ...accounts.map((account) => ({
           type: "text" as const,
           text: [
             `Account: ${account.name || "Unnamed"}`,
@@ -40,7 +40,7 @@ const ListAccountsTool = CreateXeroTool(
           ]
             .filter(Boolean)
             .join("\n"),
-        })) || []),
+        })),
       ],
     };
   },
