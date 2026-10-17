@@ -31,9 +31,9 @@ const ListTrackingCategoriesTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${trackingCategories?.length || 0} tracking categories:`
+          text: `Found ${trackingCategories.length} tracking categories:`
         },
-        ...(trackingCategories?.map((category) => ({
+        ...trackingCategories.map((category) => ({
           type: "text" as const,
           text: [
             `Tracking Category ID: ${category.trackingCategoryID}`,
@@ -41,7 +41,7 @@ const ListTrackingCategoriesTool = CreateXeroTool(
             `Status: ${category.status}`,
             `Found ${category.options?.length || 0} tracking options:\n${(category.options ?? []).map(formatTrackingOption).join("\n")}`
           ].filter(Boolean).join("\n")
-        })) || [])
+        }))
       ]
     };
   }

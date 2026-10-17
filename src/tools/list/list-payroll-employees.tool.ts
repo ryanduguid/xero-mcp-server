@@ -29,9 +29,9 @@ The response presents a complete overview of all staff currently registered in y
       content: [
         {
           type: "text" as const,
-          text: `Found ${employees?.length || 0} payroll employees:`,
+          text: `Found ${employees.length} payroll employees:`,
         },
-        ...(employees?.map((employee: Employee) => ({
+        ...employees.map((employee: Employee) => ({
           type: "text" as const,
           text: [
             `Employee: ${employee.employeeID}`,
@@ -51,7 +51,7 @@ The response presents a complete overview of all staff currently registered in y
           ]
             .filter(Boolean)
             .join("\n"),
-        })) || []),
+        })),
       ],
     };
   },

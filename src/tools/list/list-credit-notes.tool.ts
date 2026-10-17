@@ -35,9 +35,9 @@ const ListCreditNotesTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${creditNotes?.length || 0} credit notes:`,
+          text: `Found ${creditNotes.length} credit notes:`,
         },
-        ...(creditNotes?.map((creditNote) => ({
+        ...creditNotes.map((creditNote) => ({
           type: "text" as const,
           text: [
             `Credit Note ID: ${creditNote.creditNoteID}`,
@@ -67,7 +67,7 @@ const ListCreditNotesTool = CreateXeroTool(
           ]
             .filter(Boolean)
             .join("\n"),
-        })) || []),
+        })),
       ],
     };
   },

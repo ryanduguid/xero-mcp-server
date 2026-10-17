@@ -33,9 +33,9 @@ const ListContactsTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${contacts?.length || 0} contacts${page ? ` (page ${page})` : ''}:`,
+          text: `Found ${contacts.length} contacts${page ? ` (page ${page})` : ''}:`,
         },
-        ...(contacts?.map((contact) => ({
+        ...contacts.map((contact) => ({
           type: "text" as const,
           text: [
             `Contact: ${contact.name}`,
@@ -74,7 +74,7 @@ const ListContactsTool = CreateXeroTool(
           ]
             .filter(Boolean)
             .join("\n"),
-        })) || []),
+        })),
       ],
     };
   },

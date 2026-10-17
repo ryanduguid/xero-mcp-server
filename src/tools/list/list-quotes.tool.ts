@@ -33,9 +33,9 @@ const ListQuotesTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${quotes?.length || 0} quotes:`,
+          text: `Found ${quotes.length} quotes:`,
         },
-        ...(quotes?.map((quote) => ({
+        ...quotes.map((quote) => ({
           type: "text" as const,
           text: [
             `Quote ID: ${quote.quoteID}`,
@@ -69,7 +69,7 @@ const ListQuotesTool = CreateXeroTool(
           ]
             .filter(Boolean)
             .join("\n"),
-        })) || []),
+        })),
       ],
     };
   },

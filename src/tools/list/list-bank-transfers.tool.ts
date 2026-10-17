@@ -38,9 +38,9 @@ const ListBankTransfersTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${bankTransfers?.length || 0} bank transfers:`,
+          text: `Found ${bankTransfers.length} bank transfers:`,
         },
-        ...(bankTransfers?.map((transfer) => ({
+        ...bankTransfers.map((transfer) => ({
           type: "text" as const,
           text: [
             `Bank Transfer: ${transfer.bankTransferID || "Unknown ID"}`,
@@ -56,7 +56,7 @@ const ListBankTransfersTool = CreateXeroTool(
           ]
             .filter(Boolean)
             .join("\n"),
-        })) || []),
+        })),
       ],
     };
   },

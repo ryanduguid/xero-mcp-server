@@ -40,9 +40,9 @@ const ListOverpaymentsTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${overpayments?.length || 0} overpayments:`,
+          text: `Found ${overpayments.length} overpayments:`,
         },
-        ...(overpayments?.map((overpayment) => ({
+        ...overpayments.map((overpayment) => ({
           type: "text" as const,
           text: [
             `Overpayment: ${overpayment.overpaymentID || "Unknown ID"}`,
@@ -53,7 +53,7 @@ const ListOverpaymentsTool = CreateXeroTool(
             `Total: ${overpayment.total ?? "Unknown total"}`,
             `Remaining Credit: ${overpayment.remainingCredit ?? "Unknown"}`,
           ].join("\n"),
-        })) || []),
+        })),
       ],
     };
   },

@@ -27,12 +27,12 @@ const ListCurrenciesTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${currencies?.length || 0} currencies:`,
+          text: `Found ${currencies.length} currencies:`,
         },
-        ...(currencies?.map((currency) => ({
+        ...currencies.map((currency) => ({
           type: "text" as const,
           text: `${currency.code || "Unknown code"}: ${currency.description || "No description"}`,
-        })) || []),
+        })),
       ],
     };
   },

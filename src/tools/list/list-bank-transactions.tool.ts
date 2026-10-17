@@ -57,9 +57,9 @@ const ListBankTransactionsTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${bankTransactions?.length || 0} bank transactions:`
+          text: `Found ${bankTransactions.length} bank transactions:`
         },
-        ...(bankTransactions?.map((transaction) => ({
+        ...bankTransactions.map((transaction) => ({
           type: "text" as const,
           text: [
             `Bank Transaction ID: ${transaction.bankTransactionID}`,
@@ -81,7 +81,7 @@ const ListBankTransactionsTool = CreateXeroTool(
               : null,
             `Line Items: ${transaction.lineItems?.map(formatLineItem)}`,
           ].filter(Boolean).join("\n")
-        })) || [])
+        }))
       ]
     };
   }
