@@ -22,16 +22,16 @@ export const paymentDeepLink = (orgShortCode: string, paymentId: string) => {
 };
 
 export const bankTransactionDeepLink = (orgShortCode: string, accountId: string, bankTransactionId: string) => {
-  const target = `/Bank/ViewTransaction.aspx?${new URLSearchParams({ bankTransactionID: bankTransactionId, accountID: accountId })}`;
+  const target = `/Bank/ViewTransaction.aspx?${new URLSearchParams({ bankTransactionID: bankTransactionId, accountID: accountId }).toString()}`;
   return organisationLink(orgShortCode, target);
 };
 
 export const manualJournalDeepLink = (orgShortCode: string, journalId: string) => {
-  return organisationLink(orgShortCode, `/Journal/View.aspx?${new URLSearchParams({ invoiceID: journalId })}`);
+  return organisationLink(orgShortCode, `/Journal/View.aspx?${new URLSearchParams({ invoiceID: journalId }).toString()}`);
 };
 
 const organisationLink = (orgShortCode: string, redirecturl: string) =>
-  `https://go.xero.com/organisationlogin/default.aspx?${new URLSearchParams({ shortcode: orgShortCode, redirecturl })}`;
+  `https://go.xero.com/organisationlogin/default.aspx?${new URLSearchParams({ shortcode: orgShortCode, redirecturl }).toString()}`;
 
 export const billDeepLink = (orgShortCode: string, billId: string) => {
   return `https://go.xero.com/organisationlogin/default.aspx?shortcode=${orgShortCode}&redirecturl=/AccountsPayable/Edit.aspx?InvoiceID=${billId}`;
