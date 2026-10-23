@@ -1,9 +1,12 @@
 # Xero MCP Server
 
+<div align="center">
+
 **Fork status**
 
-[![Fork code quality](https://img.shields.io/codacy/grade/fb763db469b2487181158cf3e6790bef/main?style=flat&labelColor=000000)](https://app.codacy.com/gh/ryanduguid/xero-mcp-server/dashboard)
-[![Fork CI](https://img.shields.io/github/actions/workflow/status/ryanduguid/xero-mcp-server/ci.yml?branch=main&label=CI&style=flat&labelColor=000000)](https://github.com/ryanduguid/xero-mcp-server/actions/workflows/ci.yml)
+[![Fork code quality](https://img.shields.io/codacy/grade/fb763db469b2487181158cf3e6790bef/main?style=flat&labelColor=000000)](https://app.codacy.com/gh/ryanduguid/xero-mcp-server/dashboard) [![Fork CI](https://img.shields.io/github/actions/workflow/status/ryanduguid/xero-mcp-server/ci.yml?branch=main&label=CI&style=flat&labelColor=000000)](https://github.com/ryanduguid/xero-mcp-server/actions/workflows/ci.yml)
+
+</div>
 
 This is a Model Context Protocol (MCP) server implementation for Xero. It provides a bridge between the MCP protocol and Xero's API, allowing for standardized access to Xero's accounting and business features.
 
