@@ -26,19 +26,19 @@ import { ToolFactory } from "../tool-factory.js";
 
 const registered = vi.fn();
 ToolFactory({ tool: registered } as unknown as McpServer, {});
-const shapes = new Map<string, z.ZodRawShape>(
+const shapes = new Map<string, Record<string, z.ZodTypeAny>>(
   registered.mock.calls.map(([name, , shape]) => [name, shape]),
 );
 
 function numberFields(schema: z.ZodTypeAny, path: string): { path: string }[] {
   if (schema instanceof z.ZodOptional) {
-    return numberFields(schema.unwrap(), path);
+    return numberFields(schema.unwrap() as z.ZodTypeAny, path);
   }
   if (schema instanceof z.ZodDefault) {
-    return numberFields(schema.removeDefault(), path);
+    return numberFields(schema.unwrap() as z.ZodTypeAny, path);
   }
   if (schema instanceof z.ZodArray) {
-    return numberFields(schema.element, `${path}[]`);
+    return numberFields(schema.element as z.ZodTypeAny, `${path}[]`);
   }
   if (schema instanceof z.ZodObject) {
     return Object.entries(schema.shape).flatMap(([name, field]) =>
@@ -256,7 +256,7 @@ describe("numeric tool inputs", () => {
         const accepted = positive.includes(path)
           ? value > 0
           : positiveInteger.includes(path)
-            ? value > 0 && Number.isInteger(value)
+            ? value > 0 && Number.isSafeInteger(value)
             : true;
         const { schema, args, location } = inputCase(path, value);
         const parsed = schema.safeParse(args);
