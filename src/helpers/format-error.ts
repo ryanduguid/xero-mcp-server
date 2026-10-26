@@ -10,28 +10,25 @@ interface XeroValidationError {
   Message?: string;
 }
 
-interface XeroErrorBody {
+interface XeroSdkErrorBody {
   httpStatusCode?: string;
   problem?: XeroSdkProblem;
   Detail?: string;
+  /** Present on Xero validation exceptions, e.g. "A validation exception occurred". */
   Message?: string;
-  ValidationErrors?: unknown;
-  Elements?: unknown;
+  /** Present on Xero validation exceptions, e.g. "ValidationException". */
+  Type?: string;
+  /** Validation failures some endpoints report at the top level. */
+  ValidationErrors?: XeroValidationError[];
+  /** Per-entity validation failures — where the actionable detail actually lives. */
+  Elements?: Array<{ ValidationErrors?: XeroValidationError[] }>;
 }
 
 interface XeroSdkError {
   response: {
     statusCode: number;
-    body?: XeroErrorBody;
+    body?: XeroSdkErrorBody;
   };
-}
-
-function parseJson(text: string): unknown {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return undefined;
-  }
 }
 
 function isXeroSdkError(error: unknown): error is XeroSdkError {
@@ -41,18 +38,21 @@ function isXeroSdkError(error: unknown): error is XeroSdkError {
   return typeof (response as { statusCode?: unknown }).statusCode === "number";
 }
 
-function formatHttpStatus(status: number): string {
-  switch (status) {
-    case 401:
-      return "Authentication failed. Please check your Xero credentials.";
-    case 403:
-      return "You don't have permission to access this resource in Xero.";
-    case 404:
-      return "The requested resource was not found in Xero.";
-    case 429:
-      return "Too many requests to Xero. Please try again in a moment.";
-    default:
-      return "";
+/**
+ * xero-node v13 issues requests through axios, which throws on any non-2xx
+ * response. The generated API methods catch that and reject with
+ * `JSON.stringify(new ApiError(err).generateError())` — so real SDK failures
+ * reach us as a JSON *string*, not an object.
+ *
+ * That string embeds `response.request.headers.authorization` (the caller's
+ * Bearer token), so it must never be echoed back. Parse it and let the same
+ * field whitelist below decide what escapes.
+ */
+function parseSerialisedSdkError(error: string): unknown {
+  try {
+    return JSON.parse(error);
+  } catch {
+    return undefined;
   }
 }
 
@@ -90,7 +90,8 @@ function extractDetail(body: unknown): string | undefined {
     }
   };
 
-  const { Detail, Message, ValidationErrors, Elements } = body as XeroErrorBody;
+  const { Detail, Message, ValidationErrors, Elements } =
+    body as XeroSdkErrorBody;
 
   add(Detail);
   add(Message);
@@ -117,6 +118,21 @@ function extractDetail(body: unknown): string | undefined {
     : shown.join("; ");
 }
 
+function formatHttpStatus(status: number): string {
+  switch (status) {
+    case 401:
+      return "Authentication failed. Please check your Xero credentials.";
+    case 403:
+      return "You don't have permission to access this resource in Xero.";
+    case 404:
+      return "The requested resource was not found in Xero.";
+    case 429:
+      return "Too many requests to Xero. Please try again in a moment.";
+    default:
+      return "";
+  }
+}
+
 /**
  * Format error messages for return to the LLM.
  *
@@ -125,7 +141,30 @@ function extractDetail(body: unknown): string | undefined {
  * caller's Bearer token. Whitelist the fields we extract so secrets never
  * reach the response.
  */
+function describeSdkError(error: XeroSdkError): string {
+  const status = error.response.statusCode;
+  const mapped = formatHttpStatus(status);
+  if (mapped) return mapped;
+
+  const body = error.response.body;
+  const problem = body?.problem;
+  const title =
+    problem?.title ?? body?.httpStatusCode ?? body?.Type ?? "HTTP error";
+
+  const detail = problem?.detail ?? extractDetail(body);
+
+  return detail ? `${status} ${title}: ${detail}` : `${status} ${title}`;
+}
+
 export function formatError(error: unknown): string {
+  if (typeof error === "string") {
+    const parsed = parseSerialisedSdkError(error);
+    // Only a recognised, whitelisted shape may be described. Anything else
+    // falls through to the generic message — never echo the raw string.
+    if (isXeroSdkError(parsed)) return describeSdkError(parsed);
+    return "An unexpected error occurred while communicating with Xero.";
+  }
+
   if (error instanceof AxiosError) {
     const status = error.response?.status;
     const detail = extractDetail(error.response?.data);
@@ -137,26 +176,8 @@ export function formatError(error: unknown): string {
     return detail || "An error occurred while communicating with Xero.";
   }
 
-  // xero-node 13 rejects with JSON.stringify(apiError.generateError()), whose
-  // response.request.headers carries the bearer token. Parse it and read only
-  // the allow-listed fields below; never return the string itself.
-  if (typeof error === "string") {
-    const parsed = parseJson(error);
-    return isXeroSdkError(parsed)
-      ? formatError(parsed)
-      : "An unexpected error occurred while communicating with Xero.";
-  }
-
   if (isXeroSdkError(error)) {
-    const status = error.response.statusCode;
-    const mapped = formatHttpStatus(status);
-    if (mapped) return mapped;
-
-    const body = error.response.body;
-    const problem = body?.problem;
-    const title = problem?.title ?? body?.httpStatusCode ?? "HTTP error";
-    const detail = problem?.detail ?? extractDetail(body);
-    return detail ? `${status} ${title}: ${detail}` : `${status} ${title}`;
+    return describeSdkError(error);
   }
 
   if (error instanceof Error) {

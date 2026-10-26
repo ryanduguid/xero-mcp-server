@@ -3,8 +3,8 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { createXeroManualJournal } from "../../handlers/create-xero-manual-journal.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { ensureError } from "../../helpers/ensure-error.js";
+import { mapLineAmountType } from "../../helpers/map-line-amount-type.js";
 import { ManualJournal } from "xero-node";
-import { toLineAmountTypes } from "../../helpers/to-line-amount-types.js";
 
 const CreateManualJournalTool = CreateXeroTool(
   "create-manual-journal",
@@ -72,7 +72,7 @@ const CreateManualJournalTool = CreateXeroTool(
         args.narration,
         args.manualJournalLines,
         args.date,
-        toLineAmountTypes(args.lineAmountTypes),
+        mapLineAmountType(args.lineAmountTypes),
         args.status as ManualJournal.StatusEnum | undefined,
         args.url,
         args.showOnCashBasisReports,

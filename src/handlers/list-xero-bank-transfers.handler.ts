@@ -32,6 +32,7 @@ async function getBankTransfers(
     undefined, // ifModifiedSince
     conditions.length > 0 ? conditions.join(" AND ") : undefined, // where
     "Date DESC", // order
+    undefined, // includeDeleted
     getClientHeaders(),
   );
 

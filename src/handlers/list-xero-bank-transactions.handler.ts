@@ -49,6 +49,7 @@ async function getBankTransactions(
       page, // page
       undefined, // unitdp
       10, // pagesize
+      undefined, // references
       getClientHeaders()
   );
 

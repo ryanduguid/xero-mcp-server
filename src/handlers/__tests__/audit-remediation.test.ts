@@ -28,7 +28,7 @@ import { createXeroItem } from "../create-xero-item.handler.js";
 import { listXeroPayrollEmployees } from "../list-xero-payroll-employees.handler.js";
 import { formatLineItem } from "../../helpers/format-line-item.js";
 import { getPackageVersion } from "../../helpers/get-package-version.js";
-import { toLineAmountTypes } from "../../helpers/to-line-amount-types.js";
+import { mapLineAmountType } from "../../helpers/map-line-amount-type.js";
 import CreateManualJournalTool from "../../tools/create/create-manual-journal.tool.js";
 import CreateItemTool from "../../tools/create/create-item.tool.js";
 import ListItemsTool from "../../tools/list/list-items.tool.js";
@@ -107,10 +107,10 @@ test("a tracked item submits the cost of goods sold account", async () => {
 
 // F130
 test("line amount types reach the SDK with its own spelling", async () => {
-  expect(toLineAmountTypes("NO_TAX")).toBe(LineAmountTypes.NoTax);
-  expect(toLineAmountTypes("EXCLUSIVE")).toBe(LineAmountTypes.Exclusive);
-  expect(toLineAmountTypes("INCLUSIVE")).toBe(LineAmountTypes.Inclusive);
-  expect(toLineAmountTypes(undefined)).toBeUndefined();
+  expect(mapLineAmountType("NO_TAX")).toBe(LineAmountTypes.NoTax);
+  expect(mapLineAmountType("EXCLUSIVE")).toBe(LineAmountTypes.Exclusive);
+  expect(mapLineAmountType("INCLUSIVE")).toBe(LineAmountTypes.Inclusive);
+  expect(mapLineAmountType(undefined)).toBeUndefined();
 
   client.accountingApi.createManualJournals.mockResolvedValue({
     body: { manualJournals: [{ manualJournalID: "m" }] },
