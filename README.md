@@ -4,7 +4,7 @@
 
 **Fork status**
 
-[![Fork code quality](https://img.shields.io/codacy/grade/fb763db469b2487181158cf3e6790bef/main?style=flat&labelColor=000000)](https://app.codacy.com/gh/ryanduguid/xero-mcp-server/dashboard) [![Fork CI](https://img.shields.io/github/actions/workflow/status/ryanduguid/xero-mcp-server/ci.yml?branch=main&label=CI&style=flat&labelColor=000000)](https://github.com/ryanduguid/xero-mcp-server/actions/workflows/ci.yml)
+[![Fork code quality](https://app.codacy.com/project/badge/Grade/fb763db469b2487181158cf3e6790bef?branch=main)](https://app.codacy.com/gh/ryanduguid/xero-mcp-server/dashboard) [![Fork CI](https://github.com/ryanduguid/xero-mcp-server/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ryanduguid/xero-mcp-server/actions/workflows/ci.yml)
 
 </div>
 
