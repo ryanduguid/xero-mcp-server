@@ -8,6 +8,8 @@
 
 </div>
 
+ryanduguid/xero-mcp-server is [Ryan Duguid](https://duguid.com.au/)'s distribution fork of [XeroAPI/xero-mcp-server](https://github.com/XeroAPI/xero-mcp-server), adding an opt-in read-only mode, tool annotations, bank transfer and tax-type recoding tools and bearer-token-safe errors for Xero MCP users who build from source.
+
 GitHub Actions is off for this fork, so `ci.yml` does not run on GitHub. Run its steps locally before merging.
 
 This is a Model Context Protocol (MCP) server implementation for Xero. It provides a bridge between the MCP protocol and Xero's API, allowing for standardized access to Xero's accounting and business features.
@@ -72,7 +74,7 @@ Custom connections require different scopes depending on when they were created.
 
 ##### Choosing an installation route
 
-`@xeroapi/xero-mcp-server` on npm is the upstream release (0.0.17). It does not carry the changes in this fork, including the error helper that keeps bearer tokens out of tool responses, the annual leave field correction and the tool error flag. Pick the route that matches what you want:
+[`@xeroapi/xero-mcp-server`](https://www.npmjs.com/package/@xeroapi/xero-mcp-server) on npm is the upstream release (0.0.17, published 26 May 2026). It does not carry the changes in this fork, including the error helper that keeps bearer tokens out of tool responses, the annual leave field correction and the tool error flag. Pick the route that matches what you want:
 
 - Upstream release: keep `npx -y @xeroapi/xero-mcp-server@latest` in the examples below.
 - This fork: clone it, run `npm ci && npm run build`, then use `command: "node"` with the absolute path of `dist/index.js`, as in the development example further down.
@@ -154,7 +156,7 @@ payroll.timesheets
 
 ### Read-only mode and tool annotations
 
-Each tool carries MCP annotations describing what it does. `get-` and `list-` tools are marked read-only. `create-` tools are marked additive but not safe to repeat, because a second call creates a second record. Every other tool changes an existing record, by updating, approving, reverting, recoding or deleting it, and is marked destructive. `recode-bank-transaction-tax-type` is also marked safe to repeat, because it writes nothing when every line already has the requested tax type. All of them reach Xero, so all are marked open-world. The MCP client decides what to do with these hints, such as asking before each write; they do not block a call.
+Each xero-mcp-server tool carries MCP annotations describing what it does. `get-` and `list-` tools are marked read-only. `create-` tools are marked additive but not safe to repeat, because a second call creates a second record. Every other tool changes an existing record, by updating, approving, reverting, recoding or deleting it, and is marked destructive. `recode-bank-transaction-tax-type` is also marked safe to repeat, because it writes nothing when every line already has the requested tax type. All of them reach Xero, so all are marked open-world. The MCP client decides what to do with these hints, such as asking before each write; they do not block a call.
 
 To offer only the `get-` and `list-` tools, add `"XERO_READ_ONLY": "true"` to the server's `env`. Leaving it unset or empty keeps every tool. Any other value except `true` or `false`, blank space included, stops the server from starting, so a mistyped setting cannot leave the write tools on.
 
