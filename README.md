@@ -105,7 +105,7 @@ NOTE: If you are using [Node Version Manager](https://github.com/nvm-sh/nvm) `"c
 
 #### 2. Bearer Token
 
-Use this when the MCP client obtains a token itself, through an auth flow such as PKCE, and hands it to the server. The server uses the token as supplied and works against the first organisation Xero lists for it: `updateTenants` sets the tenant to `tenants[0]` and no tool takes a tenant argument. A token connected to more than one organisation therefore queries whichever Xero lists first, so authorise the token for the one organisation you intend to query and run one server process per token.
+Use this when the MCP client obtains a token itself, through an auth flow such as PKCE, and hands it to the server. The server uses the token as supplied. No tool takes a tenant argument, so each server process works against one organisation: see [Choosing the organisation](#choosing-the-organisation).
 In this case, use the following configuration:
 
 ```json
@@ -153,6 +153,9 @@ payroll.employees
 payroll.timesheets
 ```
 
+### Choosing the organisation
+
+A Custom Connection or bearer token can reach more than one Xero organisation. When it reaches only one, the server uses it. When it reaches several, set `XERO_TENANT_ID` in the server's `env` to the tenant ID of the organisation to use; until then every tool call is refused with a message listing the reachable tenant IDs and names, rather than reading whichever organisation Xero lists first. A `XERO_TENANT_ID` the connection cannot reach is refused the same way. Run one server process per organisation.
 
 ### Read-only mode and tool annotations
 
