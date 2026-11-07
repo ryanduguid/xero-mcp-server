@@ -74,12 +74,15 @@ Custom connections require different scopes depending on when they were created.
 
 ##### Opt-in scopes
 
-Some tools need scopes that are not in either default list, so they stay off until you grant them. Add the scope to the Custom Connection and to `XERO_SCOPES` alongside the scopes you already use, or request it with the bearer token. Without it, Xero refuses the call.
+Some tools need scopes that the default lists do not grant, so they stay off until you grant them. Add the scope to the Custom Connection and to `XERO_SCOPES` alongside the scopes you already use, or request it with the bearer token. Without it, Xero refuses the call.
 
-| Tools | Scope to add |
-|-------|--------------|
-| `list-payroll-pay-runs`, `list-payroll-payslips` | `payroll.payruns.read` |
-| `get-payroll-payslip` | `payroll.payslip.read` |
+| Tools | Scope to add | Already granted by |
+|-------|--------------|--------------------|
+| `list-payroll-pay-runs`, `list-payroll-payslips` | `payroll.payruns.read` | Neither default list |
+| `get-payroll-payslip` | `payroll.payslip.read` | Neither default list |
+| `list-budgets`, `get-budget` | `accounting.budgets.read` | Neither default list |
+| `list-bank-summary` | `accounting.reports.banksummary.read` | `accounting.reports.read` in SCOPES_V1 |
+| `list-executive-summary` | `accounting.reports.executivesummary.read` | `accounting.reports.read` in SCOPES_V1 |
 
 Payslips and pay runs show each employee's wages, tax and super, so grant these scopes only where a model may see that data. The Australian payroll tools also read the organisation's country first, which needs `accounting.settings` or `accounting.settings.read`. `list-payroll-pay-items` uses `payroll.settings`, already in the default lists.
 
@@ -188,6 +191,10 @@ Read-only mode changes what this server offers, not what the Xero connection per
 - `list-manual-journals`: Retrieve a list of manual journals
 - `list-organisation-details`: Retrieve details about an organisation
 - `list-profit-and-loss`: Retrieve a profit and loss report
+- `list-bank-summary`: Retrieve the Bank Summary report: opening balance, cash received, cash spent and closing balance for each bank account
+- `list-executive-summary`: Retrieve the Executive Summary report as at a date
+- `list-budgets`: Retrieve the organisation's budgets and their IDs
+- `get-budget`: Retrieve one budget's amounts by account and period, with its tracking options
 - `list-quotes`: Retrieve a list of quotes
 - `list-tax-rates`: Retrieve a list of tax rates
 - `list-payments`: Retrieve a list of payments
