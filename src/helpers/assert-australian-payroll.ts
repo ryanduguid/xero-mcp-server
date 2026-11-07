@@ -20,7 +20,13 @@ export async function assertAustralianPayroll(toolName: string): Promise<void> {
     tenantId,
     getClientHeaders(),
   );
-  if (response.body.organisations?.[0]?.countryCode !== CountryCode.AU) {
+  const countryCode = response.body.organisations?.[0]?.countryCode;
+  if (!countryCode) {
+    throw new Error(
+      `${toolName} could not read the organisation's country from Xero, so it cannot confirm the organisation uses Payroll AU.`,
+    );
+  }
+  if (countryCode !== CountryCode.AU) {
     throw new Error(
       `${toolName} uses Xero Payroll AU, so it works only for Australian organisations.`,
     );

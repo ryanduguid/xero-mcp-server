@@ -35,7 +35,7 @@ describe("assertAustralianPayroll", () => {
     );
   });
 
-  it.each(["NZ", "GB", undefined])(
+  it.each(["NZ", "GB"])(
     "refuses an organisation in %s with a message, not an API error",
     async (countryCode) => {
       organisationIn(countryCode);
@@ -45,6 +45,14 @@ describe("assertAustralianPayroll", () => {
       );
     },
   );
+
+  it("says the organisation could not be read when Xero returns none", async () => {
+    organisationIn(undefined);
+
+    await expect(assertAustralianPayroll("get-payroll-payslip")).rejects.toThrow(
+      "get-payroll-payslip could not read the organisation's country from Xero",
+    );
+  });
 
   it("asks again after a refusal", async () => {
     organisationIn("NZ");

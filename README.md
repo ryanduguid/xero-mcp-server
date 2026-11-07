@@ -65,8 +65,8 @@ Custom connections require different scopes depending on when they were created.
 
 | Custom Connection Created | Required Scopes |
 |---------------------------|-----------------|
-| Before Apr 29, 2026 | [SCOPES_V1](src/clients/xero-client.ts#L117-L125) (bundled permissions) |
-| From Apr 29, 2026 | [SCOPES_V2](src/clients/xero-client.ts#L128-L142) (granular permissions) |
+| Before Apr 29, 2026 | [SCOPES_V1](src/clients/xero-client.ts#L140-L148) (bundled permissions) |
+| From Apr 29, 2026 | [SCOPES_V2](src/clients/xero-client.ts#L151-L165) (granular permissions) |
 
 > **Note:** The MCP server automatically tries V1 scopes first and falls back to V2 if needed.
 > 
@@ -81,8 +81,10 @@ Some tools need scopes that the default lists do not grant, so they stay off unt
 | `list-payroll-pay-runs`, `list-payroll-payslips` | `payroll.payruns.read` | Neither default list |
 | `get-payroll-payslip` | `payroll.payslip.read` | Neither default list |
 | `list-budgets`, `get-budget` | `accounting.budgets.read` | Neither default list |
-| `list-bank-summary` | `accounting.reports.banksummary.read` | `accounting.reports.read` in SCOPES_V1 |
-| `list-executive-summary` | `accounting.reports.executivesummary.read` | `accounting.reports.read` in SCOPES_V1 |
+| `list-bank-summary` | `accounting.reports.banksummary.read` (granular) | `accounting.reports.read` (broad) in SCOPES_V1 |
+| `list-executive-summary` | `accounting.reports.executivesummary.read` (granular) | `accounting.reports.read` (broad) in SCOPES_V1 |
+
+Xero's [scopes page](https://developer.xero.com/documentation/guides/oauth2/scopes/), read on 8 November 2026, says Web and PKCE apps have had granular scopes since March 2026 and Custom Connections since 29 April 2026. An app or connection that already uses broad scopes, such as `accounting.reports.read`, can keep them until September 2027. For the 2 summary reports, use the granular scope on a granular connection and the broad scope on an older one.
 
 Payslips and pay runs show each employee's wages, tax and super, so grant these scopes only where a model may see that data. The Australian payroll tools also read the organisation's country first, which needs `accounting.settings` or `accounting.settings.read`. `list-payroll-pay-items` uses `payroll.settings`, already in the default lists.
 
@@ -169,7 +171,7 @@ payroll.timesheets
 
 ### Choosing the organisation
 
-A Custom Connection or bearer token can reach more than one Xero organisation. When it reaches only one, the server uses it. When it reaches several, set `XERO_TENANT_ID` in the server's `env` to the tenant ID of the organisation to use; until then every tool call is refused with a message listing the reachable tenant IDs and names, rather than reading whichever organisation Xero lists first. A `XERO_TENANT_ID` the connection cannot reach is refused the same way. Run one server process per organisation.
+A Custom Connection or bearer token can reach more than one Xero organisation. When it reaches only one, the server uses it. When it reaches several, set `XERO_TENANT_ID` in the server's `env` to the tenant ID of the organisation to use, in any letter case. Until then every tool call is refused rather than reading whichever organisation Xero lists first. The refusal gives the model only the number of organisations; the tenant IDs and names go to the server log on stderr, so a practice token's client names stay out of the conversation. A `XERO_TENANT_ID` the connection cannot reach is refused the same way, and a connection that reaches no organisation is refused too. Run one server process per organisation.
 
 ### Read-only mode and tool annotations
 

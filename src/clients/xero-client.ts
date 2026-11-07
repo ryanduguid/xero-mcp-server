@@ -21,32 +21,55 @@ if (!bearer_token && (!client_id || !client_secret)) {
   throw Error("Environment Variables not set - please check your .env file");
 }
 
-// A connection or token can reach several organisations. Taking the first one
-// Xero lists would read whichever organisation happens to sort first, so with
-// more than one the user must choose it with XERO_TENANT_ID.
-function chooseTenantId(
-  connections: { tenantId: string; tenantName?: string }[],
-): string {
+type Connection = { tenantId: string; tenantName?: string };
+
+// The tenant IDs and names go to the server log on stderr (stdout carries the
+// MCP protocol), not into the refusal: for a practice token they are client
+// names, and the model should not see them.
+function logReachable(connections: Connection[]): void {
   const reachable = connections
     .map(({ tenantId, tenantName }) => `${tenantId} (${tenantName ?? "unnamed"})`)
     .join(", ");
+  console.error(`Xero organisations this connection reaches: ${reachable}`);
+}
 
-  if (chosen_tenant_id) {
-    if (!connections.some(({ tenantId }) => tenantId === chosen_tenant_id)) {
-      throw new Error(
-        `XERO_TENANT_ID ${chosen_tenant_id} is not an organisation this connection can reach. Reachable: ${reachable || "none"}.`,
-      );
-    }
-    return chosen_tenant_id;
-  }
-
-  if (connections.length > 1) {
+// A connection or token can reach several organisations. Taking the first one
+// Xero lists would read whichever organisation happens to sort first, so with
+// more than one the user must choose it with XERO_TENANT_ID.
+function chooseTenantId(connections: Connection[]): string {
+  if (connections.length === 0) {
     throw new Error(
-      `This connection reaches more than one Xero organisation. Set XERO_TENANT_ID to the one to use: ${reachable}.`,
+      "This connection reaches no Xero organisation. Connect one to the app, then try again.",
     );
   }
 
-  return connections[0]?.tenantId ?? "";
+  const count =
+    connections.length === 1
+      ? "1 Xero organisation"
+      : `${connections.length} Xero organisations`;
+
+  if (chosen_tenant_id) {
+    // Tenant IDs are GUIDs, so letter case carries no meaning.
+    const chosen = connections.find(
+      ({ tenantId }) => tenantId.toLowerCase() === chosen_tenant_id.toLowerCase(),
+    );
+    if (!chosen) {
+      logReachable(connections);
+      throw new Error(
+        `XERO_TENANT_ID ${chosen_tenant_id} is not among the ${count} this connection reaches. The server log lists their tenant IDs and names.`,
+      );
+    }
+    return chosen.tenantId;
+  }
+
+  if (connections.length > 1) {
+    logReachable(connections);
+    throw new Error(
+      `This connection reaches ${count}. Set XERO_TENANT_ID to the one to use; the server log lists their tenant IDs and names.`,
+    );
+  }
+
+  return connections[0].tenantId;
 }
 
 abstract class MCPXeroClient extends XeroClient {
