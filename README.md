@@ -44,7 +44,7 @@ If you don't already have a Xero account and organisation already, can create on
 
 We recommend using a Demo Company to start with because it comes with some pre-loaded sample data. Once you are logged in, switch to it by using the top left-hand dropdown and selecting "Demo Company". You can reset the data on a Demo Company, or change the country, at any time by using the top left-hand dropdown and navigating to [My Xero](https://my.xero.com).
 
-NOTE: The payroll tools call the Xero Payroll NZ API, so payroll queries need a New Zealand organisation. There are no UK or AU payroll handlers in this server.
+NOTE: The employee, leave and timesheet payroll tools call the Xero Payroll NZ API, so they need a New Zealand organisation. The Australian pay run, payslip and pay item tools call the Xero Payroll AU API and refuse any organisation that is not Australian. They only read: nothing posts, approves or deletes a pay run. There are no UK payroll handlers in this server.
 
 ### Authentication
 
@@ -65,12 +65,23 @@ Custom connections require different scopes depending on when they were created.
 
 | Custom Connection Created | Required Scopes |
 |---------------------------|-----------------|
-| Before Apr 29, 2026 | [SCOPES_V1](src/clients/xero-client.ts#L82-L90) (bundled permissions) |
-| From Apr 29, 2026 | [SCOPES_V2](src/clients/xero-client.ts#L93-L112) (granular permissions) |
+| Before Apr 29, 2026 | [SCOPES_V1](src/clients/xero-client.ts#L117-L125) (bundled permissions) |
+| From Apr 29, 2026 | [SCOPES_V2](src/clients/xero-client.ts#L128-L142) (granular permissions) |
 
 > **Note:** The MCP server automatically tries V1 scopes first and falls back to V2 if needed.
 > 
 > You can override these by setting the `XERO_SCOPES` environment variable to a space-separated list of scopes.
+
+##### Opt-in scopes
+
+Some tools need scopes that are not in either default list, so they stay off until you grant them. Add the scope to the Custom Connection and to `XERO_SCOPES` alongside the scopes you already use, or request it with the bearer token. Without it, Xero refuses the call.
+
+| Tools | Scope to add |
+|-------|--------------|
+| `list-payroll-pay-runs`, `list-payroll-payslips` | `payroll.payruns.read` |
+| `get-payroll-payslip` | `payroll.payslip.read` |
+
+Payslips and pay runs show each employee's wages, tax and super, so grant these scopes only where a model may see that data. The Australian payroll tools also read the organisation's country first, which needs `accounting.settings` or `accounting.settings.read`. `list-payroll-pay-items` uses `payroll.settings`, already in the default lists.
 
 ##### Choosing an installation route
 
@@ -193,6 +204,10 @@ Read-only mode changes what this server offers, not what the Xero connection per
 - `list-payroll-leave-periods`: Retrieve a list of a Payroll Employee's leave periods
 - `list-payroll-leave-types`: Retrieve a list of all available leave types in Xero Payroll
 - `list-timesheets`: Retrieve a list of Payroll Timesheets
+- `list-payroll-pay-runs`: Retrieve Australian Payroll AU pay runs, 100 per page
+- `list-payroll-payslips`: Retrieve the payslip summaries on an Australian pay run
+- `get-payroll-payslip`: Retrieve one Australian payslip, including earnings and superannuation lines
+- `list-payroll-pay-items`: Retrieve Australian earnings rates, deduction, leave and reimbursement types
 - `list-aged-receivables-by-contact`: Retrieves aged receivables for a contact
 - `list-aged-payables-by-contact`: Retrieves aged payables for a contact
 - `list-contact-groups`: Retrieve a list of contact groups

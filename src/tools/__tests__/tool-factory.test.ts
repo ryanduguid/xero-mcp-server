@@ -14,7 +14,7 @@ import { UpdateTools } from "../update/index.js";
 // given a category deliberately.
 const EXPECTED = {
   delete: ["delete-timesheet"],
-  get: ["get-contact", "get-timesheet"],
+  get: ["get-contact", "get-timesheet", "get-payroll-payslip"],
   create: [
     "create-contact",
     "create-credit-note",
@@ -57,6 +57,9 @@ const EXPECTED = {
     "list-aged-receivables-by-contact",
     "list-aged-payables-by-contact",
     "list-timesheets",
+    "list-payroll-pay-runs",
+    "list-payroll-payslips",
+    "list-payroll-pay-items",
     "list-contact-groups",
     "list-tracking-categories",
   ],
@@ -92,11 +95,11 @@ const register = (env: NodeJS.ProcessEnv) => {
 };
 
 describe("ToolFactory", () => {
-  it("registers all 58 tools once with their definitions unchanged", () => {
+  it("registers all 62 tools once with their definitions unchanged", () => {
     const calls = register({});
     const names = calls.map(([name]) => name);
     expect(names).toEqual(Object.values(EXPECTED).flat());
-    expect(new Set(names).size).toBe(58);
+    expect(new Set(names).size).toBe(62);
 
     const definitions = [DeleteTools, GetTools, CreateTools, ListTools, UpdateTools]
       .flat()
@@ -153,7 +156,7 @@ describe("ToolFactory", () => {
   it.each([undefined, "", "false"])(
     "registers every tool when XERO_READ_ONLY is %j",
     (value) => {
-      expect(register({ XERO_READ_ONLY: value })).toHaveLength(58);
+      expect(register({ XERO_READ_ONLY: value })).toHaveLength(62);
     },
   );
 
