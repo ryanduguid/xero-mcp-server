@@ -86,7 +86,7 @@ Some tools need scopes that the default lists do not grant, so they stay off unt
 
 Xero's [scopes page](https://developer.xero.com/documentation/guides/oauth2/scopes/), read on 8 November 2026, says Web and PKCE apps have had granular scopes since March 2026 and Custom Connections since 29 April 2026. An app or connection that already uses broad scopes, such as `accounting.reports.read`, can keep them until September 2027. For the 2 summary reports, use the granular scope on a granular connection and the broad scope on an older one.
 
-Payslips and pay runs show each employee's wages, tax and super, so grant these scopes only where a model may see that data. The Australian payroll tools also read the organisation's country first, which needs `accounting.settings` or `accounting.settings.read`. `list-payroll-pay-items` uses `payroll.settings`, already in the default lists.
+Payslips and pay runs show each employee's wages, tax and super, so grant these scopes only where a model may see that data. The Australian payroll tools also read the organisation's country first, which needs `accounting.settings` or `accounting.settings.read`. `list-payroll-pay-items` uses `payroll.settings`, already in the default lists. Pay items are organisation settings, such as rate names, types and exemption flags, and hold no employee's pay.
 
 ##### Choosing an installation route
 

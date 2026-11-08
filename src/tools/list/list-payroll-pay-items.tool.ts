@@ -1,6 +1,11 @@
 import { listXeroPayrollAuPayItems } from "../../handlers/list-xero-payroll-au-pay-items.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
+// Name and ID together: payslips identify their lines by ID only, so the ID is
+// what joins a payslip line to its pay item.
+const label = (name: string | undefined, id: string | undefined) =>
+  `${name ?? "Unnamed"} (ID ${id ?? "unknown"})`;
+
 const ListPayrollPayItemsTool = CreateXeroTool(
   "list-payroll-pay-items",
   `List Australian Payroll AU pay items: earnings rates, deduction types, leave types and reimbursement types. Use this to map ordinary earnings versus allowances and to see which rates are exempt from super. Australian organisations only. Needs the payroll.settings or payroll.settings.read scope. This tool only reads data.`,
@@ -37,7 +42,7 @@ const ListPayrollPayItemsTool = CreateXeroTool(
       payItems.earningsRates
         ?.map((rate) =>
           [
-            `  ${rate.name ?? rate.earningsRateID}`,
+            `  ${label(rate.name, rate.earningsRateID)}`,
             rate.earningsType ? `type=${String(rate.earningsType)}` : null,
             rate.isExemptFromSuper !== undefined
               ? `exemptFromSuper=${rate.isExemptFromSuper}`
@@ -56,17 +61,17 @@ const ListPayrollPayItemsTool = CreateXeroTool(
 
     const deductions =
       payItems.deductionTypes
-        ?.map((item) => `  ${item.name ?? item.deductionTypeID}`)
+        ?.map((item) => `  ${label(item.name, item.deductionTypeID)}`)
         .join("\n") || "  None";
 
     const leave =
       payItems.leaveTypes
-        ?.map((item) => `  ${item.name ?? item.leaveTypeID}`)
+        ?.map((item) => `  ${label(item.name, item.leaveTypeID)}`)
         .join("\n") || "  None";
 
     const reimbursements =
       payItems.reimbursementTypes
-        ?.map((item) => `  ${item.name ?? item.reimbursementTypeID}`)
+        ?.map((item) => `  ${label(item.name, item.reimbursementTypeID)}`)
         .join("\n") || "  None";
 
     return {
