@@ -142,6 +142,7 @@ const fixtures: Record<string, Record<string, unknown>> = {
   "list-manual-journals": { page: 1 },
   "list-overpayments": { page: 1 },
   "list-payments": { page: 1 },
+  "list-payroll-pay-runs": { page: 1 },
   "list-prepayments": { page: 1 },
   "list-profit-and-loss": { periods: 1 },
   "list-quotes": { page: 1 },
@@ -195,6 +196,7 @@ describe("numeric tool inputs", () => {
         "list-manual-journals.page",
         "list-overpayments.page",
         "list-payments.page",
+        "list-payroll-pay-runs.page",
         "list-prepayments.page",
         "list-profit-and-loss.periods",
         "list-quotes.page",
@@ -240,6 +242,7 @@ describe("numeric tool inputs", () => {
       const positive = ["create-payment.amount", "create-bank-transfer.amount"];
       const positiveInteger = [
         "list-overpayments.page",
+        "list-payroll-pay-runs.page",
         "list-prepayments.page",
       ];
       for (const value of [

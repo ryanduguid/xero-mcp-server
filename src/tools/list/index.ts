@@ -2,11 +2,14 @@ import ListAccountsTool from "./list-accounts.tool.js";
 import ListAgedPayablesByContact from "./list-aged-payables-by-contact.tool.js";
 import ListAgedReceivablesByContact
   from "./list-aged-receivables-by-contact.tool.js";
+import ListBankSummaryTool from "./list-bank-summary.tool.js";
 import ListBankTransactionsTool from "./list-bank-transactions.tool.js";
+import ListBudgetsTool from "./list-budgets.tool.js";
 import ListBankTransfersTool from "./list-bank-transfers.tool.js";
 import ListContactsTool from "./list-contacts.tool.js";
 import ListCreditNotesTool from "./list-credit-notes.tool.js";
 import ListCurrenciesTool from "./list-currencies.tool.js";
+import ListExecutiveSummaryTool from "./list-executive-summary.tool.js";
 import ListInvoicesTool from "./list-invoices.tool.js";
 import ListItemsTool from "./list-items.tool.js";
 import ListManualJournalsTool from "./list-manual-journals.tool.js";
@@ -24,6 +27,9 @@ import ListPayrollEmployeesTool from "./list-payroll-employees.tool.js";
 import ListPayrollLeavePeriodsToolTool
   from "./list-payroll-leave-periods.tool.js";
 import ListPayrollLeaveTypesTool from "./list-payroll-leave-types.tool.js";
+import ListPayrollPayItemsTool from "./list-payroll-pay-items.tool.js";
+import ListPayrollPayRunsTool from "./list-payroll-pay-runs.tool.js";
+import ListPayrollPayslipsTool from "./list-payroll-payslips.tool.js";
 import ListPayrollTimesheetsTool from "./list-payroll-timesheets.tool.js";
 import ListProfitAndLossTool from "./list-profit-and-loss.tool.js";
 import ListQuotesTool from "./list-quotes.tool.js";
@@ -48,6 +54,9 @@ export const ListTools = [
   ListPrepaymentsTool,
   ListOverpaymentsTool,
   ListProfitAndLossTool,
+  ListBankSummaryTool,
+  ListExecutiveSummaryTool,
+  ListBudgetsTool,
   ListBankTransactionsTool,
   ListBankTransfersTool,
   ListPayrollEmployeesTool,
@@ -61,6 +70,9 @@ export const ListTools = [
   ListAgedReceivablesByContact,
   ListAgedPayablesByContact,
   ListPayrollTimesheetsTool,
+  ListPayrollPayRunsTool,
+  ListPayrollPayslipsTool,
+  ListPayrollPayItemsTool,
   ListContactGroupsTool,
   ListTrackingCategoriesTool
 ];

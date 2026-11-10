@@ -44,7 +44,7 @@ If you don't already have a Xero account and organisation already, can create on
 
 We recommend using a Demo Company to start with because it comes with some pre-loaded sample data. Once you are logged in, switch to it by using the top left-hand dropdown and selecting "Demo Company". You can reset the data on a Demo Company, or change the country, at any time by using the top left-hand dropdown and navigating to [My Xero](https://my.xero.com).
 
-NOTE: The payroll tools call the Xero Payroll NZ API, so payroll queries need a New Zealand organisation. There are no UK or AU payroll handlers in this server.
+NOTE: The employee, leave and timesheet payroll tools call the Xero Payroll NZ API, so they need a New Zealand organisation. The Australian pay run, payslip and pay item tools call the Xero Payroll AU API and refuse any organisation that is not Australian. They only read: nothing posts, approves or deletes a pay run. There are no UK payroll handlers in this server.
 
 ### Authentication
 
@@ -65,12 +65,28 @@ Custom connections require different scopes depending on when they were created.
 
 | Custom Connection Created | Required Scopes |
 |---------------------------|-----------------|
-| Before Apr 29, 2026 | [SCOPES_V1](src/clients/xero-client.ts#L82-L90) (bundled permissions) |
-| From Apr 29, 2026 | [SCOPES_V2](src/clients/xero-client.ts#L93-L112) (granular permissions) |
+| Before Apr 29, 2026 | [SCOPES_V1](src/clients/xero-client.ts#L140-L148) (bundled permissions) |
+| From Apr 29, 2026 | [SCOPES_V2](src/clients/xero-client.ts#L151-L165) (granular permissions) |
 
 > **Note:** The MCP server automatically tries V1 scopes first and falls back to V2 if needed.
 > 
 > You can override these by setting the `XERO_SCOPES` environment variable to a space-separated list of scopes.
+
+##### Opt-in scopes
+
+Some tools need scopes that the default lists do not grant, so they stay off until you grant them. Add the scope to the Custom Connection and to `XERO_SCOPES` alongside the scopes you already use, or request it with the bearer token. Without it, Xero refuses the call.
+
+| Tools | Scope to add | Already granted by |
+|-------|--------------|--------------------|
+| `list-payroll-pay-runs`, `list-payroll-payslips` | `payroll.payruns.read` | Neither default list |
+| `get-payroll-payslip` | `payroll.payslip.read` | Neither default list |
+| `list-budgets`, `get-budget` | `accounting.budgets.read` | Neither default list |
+| `list-bank-summary` | `accounting.reports.banksummary.read` (granular) | `accounting.reports.read` (broad) in SCOPES_V1 |
+| `list-executive-summary` | `accounting.reports.executivesummary.read` (granular) | `accounting.reports.read` (broad) in SCOPES_V1 |
+
+Xero's [scopes page](https://developer.xero.com/documentation/guides/oauth2/scopes/), read on 8 November 2026, says Web and PKCE apps have had granular scopes since March 2026 and Custom Connections since 29 April 2026. An app or connection that already uses broad scopes, such as `accounting.reports.read`, can keep them until September 2027. For the 2 summary reports, use the granular scope on a granular connection and the broad scope on an older one.
+
+Payslips and pay runs show each employee's wages, tax and super, so grant these scopes only where a model may see that data. The Australian payroll tools also read the organisation's country first, which needs `accounting.settings` or `accounting.settings.read`. `list-payroll-pay-items` uses `payroll.settings`, already in the default lists. Pay items are organisation settings, such as rate names, types and exemption flags, and hold no employee's pay.
 
 ##### Choosing an installation route
 
@@ -105,7 +121,7 @@ NOTE: If you are using [Node Version Manager](https://github.com/nvm-sh/nvm) `"c
 
 #### 2. Bearer Token
 
-Use this when the MCP client obtains a token itself, through an auth flow such as PKCE, and hands it to the server. The server uses the token as supplied and works against the first organisation Xero lists for it: `updateTenants` sets the tenant to `tenants[0]` and no tool takes a tenant argument. A token connected to more than one organisation therefore queries whichever Xero lists first, so authorise the token for the one organisation you intend to query and run one server process per token.
+Use this when the MCP client obtains a token itself, through an auth flow such as PKCE, and hands it to the server. The server uses the token as supplied. No tool takes a tenant argument, so each server process works against one organisation: see [Choosing the organisation](#choosing-the-organisation).
 In this case, use the following configuration:
 
 ```json
@@ -153,6 +169,9 @@ payroll.employees
 payroll.timesheets
 ```
 
+### Choosing the organisation
+
+A Custom Connection or bearer token can reach more than one Xero organisation. When it reaches only one, the server uses it. When it reaches several, set `XERO_TENANT_ID` in the server's `env` to the tenant ID of the organisation to use, in any letter case. Until then every tool call is refused rather than reading whichever organisation Xero lists first. The refusal gives the model only the number of organisations; the tenant IDs and names go to the server log on stderr, so a practice token's client names stay out of the conversation. A `XERO_TENANT_ID` the connection cannot reach is refused the same way, and a connection that reaches no organisation is refused too. Run one server process per organisation.
 
 ### Read-only mode and tool annotations
 
@@ -174,6 +193,10 @@ Read-only mode changes what this server offers, not what the Xero connection per
 - `list-manual-journals`: Retrieve a list of manual journals
 - `list-organisation-details`: Retrieve details about an organisation
 - `list-profit-and-loss`: Retrieve a profit and loss report
+- `list-bank-summary`: Retrieve the Bank Summary report: opening balance, cash received, cash spent and closing balance for each bank account
+- `list-executive-summary`: Retrieve the Executive Summary report as at a date
+- `list-budgets`: Retrieve the organisation's budgets and their IDs
+- `get-budget`: Retrieve one budget's amounts by account and period, with its tracking options
 - `list-quotes`: Retrieve a list of quotes
 - `list-tax-rates`: Retrieve a list of tax rates
 - `list-payments`: Retrieve a list of payments
@@ -190,6 +213,10 @@ Read-only mode changes what this server offers, not what the Xero connection per
 - `list-payroll-leave-periods`: Retrieve a list of a Payroll Employee's leave periods
 - `list-payroll-leave-types`: Retrieve a list of all available leave types in Xero Payroll
 - `list-timesheets`: Retrieve a list of Payroll Timesheets
+- `list-payroll-pay-runs`: Retrieve Australian Payroll AU pay runs, 100 per page
+- `list-payroll-payslips`: Retrieve the payslip summaries on an Australian pay run
+- `get-payroll-payslip`: Retrieve one Australian payslip, including earnings and superannuation lines
+- `list-payroll-pay-items`: Retrieve Australian earnings rates, deduction, leave and reimbursement types
 - `list-aged-receivables-by-contact`: Retrieves aged receivables for a contact
 - `list-aged-payables-by-contact`: Retrieves aged payables for a contact
 - `list-contact-groups`: Retrieve a list of contact groups

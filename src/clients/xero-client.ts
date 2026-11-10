@@ -14,10 +14,62 @@ dotenv.config();
 const client_id = process.env.XERO_CLIENT_ID;
 const client_secret = process.env.XERO_CLIENT_SECRET;
 const bearer_token = process.env.XERO_CLIENT_BEARER_TOKEN;
+const chosen_tenant_id = process.env.XERO_TENANT_ID?.trim();
 const grant_type = "client_credentials";
 
 if (!bearer_token && (!client_id || !client_secret)) {
   throw Error("Environment Variables not set - please check your .env file");
+}
+
+type Connection = { tenantId: string; tenantName?: string };
+
+// The tenant IDs and names go to the server log on stderr (stdout carries the
+// MCP protocol), not into the refusal: for a practice token they are client
+// names, and the model should not see them.
+function logReachable(connections: Connection[]): void {
+  const reachable = connections
+    .map(({ tenantId, tenantName }) => `${tenantId} (${tenantName ?? "unnamed"})`)
+    .join(", ");
+  console.error(`Xero organisations this connection reaches: ${reachable}`);
+}
+
+// A connection or token can reach several organisations. Taking the first one
+// Xero lists would read whichever organisation happens to sort first, so with
+// more than one the user must choose it with XERO_TENANT_ID.
+function chooseTenantId(connections: Connection[]): string {
+  if (connections.length === 0) {
+    throw new Error(
+      "This connection reaches no Xero organisation. Connect one to the app, then try again.",
+    );
+  }
+
+  const count =
+    connections.length === 1
+      ? "1 Xero organisation"
+      : `${connections.length} Xero organisations`;
+
+  if (chosen_tenant_id) {
+    // Tenant IDs are GUIDs, so letter case carries no meaning.
+    const chosen = connections.find(
+      ({ tenantId }) => tenantId.toLowerCase() === chosen_tenant_id.toLowerCase(),
+    );
+    if (!chosen) {
+      logReachable(connections);
+      throw new Error(
+        `XERO_TENANT_ID ${chosen_tenant_id} is not among the ${count} this connection reaches. The server log lists their tenant IDs and names.`,
+      );
+    }
+    return chosen.tenantId;
+  }
+
+  if (connections.length > 1) {
+    logReachable(connections);
+    throw new Error(
+      `This connection reaches ${count}. Set XERO_TENANT_ID to the one to use; the server log lists their tenant IDs and names.`,
+    );
+  }
+
+  return connections[0].tenantId;
 }
 
 abstract class MCPXeroClient extends XeroClient {
@@ -34,11 +86,9 @@ abstract class MCPXeroClient extends XeroClient {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   override async updateTenants(fullOrgDetails?: boolean): Promise<any[]> {
-    await super.updateTenants(fullOrgDetails);
-    if (this.tenants && this.tenants.length > 0) {
-      this.tenantId = this.tenants[0].tenantId;
-    }
-    return this.tenants;
+    const tenants = await super.updateTenants(fullOrgDetails);
+    this.tenantId = chooseTenantId(tenants);
+    return tenants;
   }
 
   private async getOrganisation(): Promise<Organisation> {
@@ -182,24 +232,22 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
       },
     );
 
-    // Get the tenant ID from the connections endpoint
-    const token = response.data.access_token;
+    return response.data;
+  }
+
+  private async chooseTenant(token: TokenSet): Promise<void> {
     const connectionsResponse = await axios.get(
       "https://api.xero.com/connections",
       {
         timeout: 30_000,
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token.access_token}`,
           Accept: "application/json",
         },
       },
     );
 
-    if (connectionsResponse.data && connectionsResponse.data.length > 0) {
-      this.tenantId = connectionsResponse.data[0].tenantId;
-    }
-
-    return response.data;
+    this.tenantId = chooseTenantId(connectionsResponse.data ?? []);
   }
 
   private cacheToken(token: TokenSet): void {
@@ -228,8 +276,11 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
 
     // Share one request between concurrent tool calls so a cache miss cannot
     // fan out into several token requests against Xero's rate limit.
+    // An organisation that cannot be chosen fails the call before the token is
+    // cached, so the next call asks again rather than reusing it.
     this.pendingTokenRequest ??= this.getClientCredentialsToken()
-      .then((token) => {
+      .then(async (token) => {
+        await this.chooseTenant(token);
         this.cacheToken(token);
         return token;
       })
