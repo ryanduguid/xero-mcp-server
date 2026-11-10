@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { listXeroPayrollAuPayslips } from "../../handlers/list-xero-payroll-au-payslips.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { formatPayslipSummary } from "../../helpers/format-payslip-summary.js";
 import { AuPayslipSummary } from "../../types/payroll-au-types.js";
 
 const ListPayrollPayslipsTool = CreateXeroTool(
@@ -38,19 +39,7 @@ Shows wages, tax, super and net pay per employee. Use get-payroll-payslip for ea
         },
         ...(payslips?.map((payslip: AuPayslipSummary) => ({
           type: "text" as const,
-          text: [
-            `Payslip ID: ${payslip.payslipID}`,
-            `Employee ID: ${payslip.employeeID}`,
-            [payslip.firstName, payslip.lastName].filter(Boolean).join(" ")
-              ? `Name: ${[payslip.firstName, payslip.lastName].filter(Boolean).join(" ")}`
-              : null,
-            payslip.wages !== undefined ? `Wages: ${payslip.wages}` : null,
-            payslip.tax !== undefined ? `Tax: ${payslip.tax}` : null,
-            payslip._super !== undefined ? `Super: ${payslip._super}` : null,
-            payslip.netPay !== undefined ? `Net Pay: ${payslip.netPay}` : null,
-          ]
-            .filter(Boolean)
-            .join("\n"),
+          text: formatPayslipSummary(payslip).join("\n"),
         })) || []),
       ],
     };

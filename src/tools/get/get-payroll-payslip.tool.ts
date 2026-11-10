@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { getXeroPayrollAuPayslip } from "../../handlers/get-xero-payroll-au-payslip.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { formatPayslipSummary } from "../../helpers/format-payslip-summary.js";
 
 const GetPayrollPayslipTool = CreateXeroTool(
   "get-payroll-payslip",
@@ -81,22 +82,12 @@ const GetPayrollPayslipTool = CreateXeroTool(
         {
           type: "text" as const,
           text: [
-            `Payslip ID: ${payslip.payslipID}`,
-            `Employee ID: ${payslip.employeeID}`,
-            [payslip.firstName, payslip.lastName].filter(Boolean).join(" ")
-              ? `Name: ${[payslip.firstName, payslip.lastName].filter(Boolean).join(" ")}`
-              : null,
-            payslip.wages !== undefined ? `Wages: ${payslip.wages}` : null,
-            payslip.tax !== undefined ? `Tax: ${payslip.tax}` : null,
-            payslip._super !== undefined ? `Super: ${payslip._super}` : null,
-            payslip.netPay !== undefined ? `Net Pay: ${payslip.netPay}` : null,
+            ...formatPayslipSummary(payslip),
             "Earnings lines:",
             earningsLines,
             "Superannuation lines:",
             superLines,
-          ]
-            .filter(Boolean)
-            .join("\n"),
+          ].join("\n"),
         },
       ],
     };

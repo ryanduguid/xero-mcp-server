@@ -5,12 +5,13 @@ const client = vi.hoisted(() => ({
   tenantId: "fixture-au-tenant",
   authenticate: vi.fn(),
   accountingApi: { getOrganisations: vi.fn() },
-  payrollAUApi: { getPayItems: vi.fn(), getPayslip: vi.fn() },
+  payrollAUApi: { getPayItems: vi.fn(), getPayslip: vi.fn(), getPayRun: vi.fn() },
 }));
 vi.mock("../../clients/xero-client.js", () => ({ xeroClient: client }));
 
 import GetPayrollPayslipTool from "../get/get-payroll-payslip.tool.js";
 import ListPayrollPayItemsTool from "../list/list-payroll-pay-items.tool.js";
+import ListPayrollPayslipsTool from "../list/list-payroll-payslips.tool.js";
 
 const text = (result: { content: { type: string; text?: string }[] }) =>
   result.content.map((block) => block.text ?? "").join("\n");
@@ -70,5 +71,42 @@ describe("Payroll AU pay items", () => {
     ]) {
       expect(payItems).toContain(expected);
     }
+  });
+});
+
+describe("Payroll AU payslip text", () => {
+  // A zero total is printed; a total Xero left out is not.
+  const totals = {
+    payslipID: "ps-2",
+    employeeID: "emp-2",
+    firstName: "Sam",
+    wages: 1000,
+    tax: 0,
+    netPay: 1000,
+  };
+  const summary = "Payslip ID: ps-2\nEmployee ID: emp-2\nName: Sam\nWages: 1000\nTax: 0\nNet Pay: 1000";
+
+  it("lists each payslip's IDs, name and totals", async () => {
+    client.payrollAUApi.getPayRun.mockResolvedValue({
+      body: { payRuns: [{ payRunID: "pr-1", payslips: [totals] }] },
+    });
+
+    const listed = text(
+      await ListPayrollPayslipsTool().handler({ payRunID: "pr-1" }, {} as never),
+    );
+
+    expect(listed).toBe(`Found 1 payslips on pay run pr-1:\n${summary}`);
+  });
+
+  it("prints the same summary ahead of one payslip's lines", async () => {
+    client.payrollAUApi.getPayslip.mockResolvedValue({ body: { payslip: totals } });
+
+    const payslip = text(
+      await GetPayrollPayslipTool().handler({ payslipID: "ps-2" }, {} as never),
+    );
+
+    expect(payslip).toBe(
+      `${summary}\nEarnings lines:\n  None\nSuperannuation lines:\n  None`,
+    );
   });
 });
