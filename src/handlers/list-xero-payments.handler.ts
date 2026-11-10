@@ -3,6 +3,24 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Payment } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { toGuidFilter } from "../helpers/xero-guid.js";
+
+/**
+ * Render a value as the string literal a where clause expects.
+ *
+ * A double quote would close the literal and let the rest of the value add
+ * conditions of its own. Values with a quote or backslash are refused rather
+ * than escaped, because how Xero's parser reads an escaped quote is unconfirmed.
+ */
+function toStringFilter(field: string, value: string): string {
+  if (value === "" || /["\\]/.test(value)) {
+    throw new Error(
+      `${field} cannot contain a double quote or backslash and cannot be empty, received "${value}"`,
+    );
+  }
+
+  return `"${value}"`;
+}
 
 async function getPayments(
   page: number = 1,
@@ -18,27 +36,33 @@ async function getPayments(
     reference?: string;
   },
 ): Promise<Payment[]> {
-  await xeroClient.authenticate();
-
-  // Build where clause for filtering
+  // Build where clause for filtering. Every filter is checked when it is
+  // supplied, empty string included, so an empty value cannot fall through to
+  // a listing of every payment.
   const whereConditions: string[] = [];
 
-  if (invoiceId) {
-    whereConditions.push(`Invoice.InvoiceID==guid("${invoiceId}")`);
+  if (invoiceId !== undefined) {
+    whereConditions.push(
+      `Invoice.InvoiceID==${toGuidFilter("invoiceId", invoiceId)}`,
+    );
   }
-  if (invoiceNumber) {
-    whereConditions.push(`Invoice.InvoiceNumber=="${invoiceNumber}"`);
+  if (invoiceNumber !== undefined) {
+    whereConditions.push(
+      `Invoice.InvoiceNumber==${toStringFilter("invoiceNumber", invoiceNumber)}`,
+    );
   }
-  if (paymentId) {
-    whereConditions.push(`PaymentID==guid("${paymentId}")`);
+  if (paymentId !== undefined) {
+    whereConditions.push(`PaymentID==${toGuidFilter("paymentId", paymentId)}`);
   }
-  if (reference) {
-    whereConditions.push(`Reference=="${reference}"`);
+  if (reference !== undefined) {
+    whereConditions.push(`Reference==${toStringFilter("reference", reference)}`);
   }
 
   // Combine conditions
   const where =
     whereConditions.length > 0 ? whereConditions.join(" AND ") : undefined;
+
+  await xeroClient.authenticate();
 
   const response = await xeroClient.accountingApi.getPayments(
     xeroClient.tenantId,
