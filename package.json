@@ -30,6 +30,11 @@
     "xero-node": "^20.0.0",
     "zod": "^4.6.7"
   },
+  "overrides": {
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "11.0.1"
+    }
+  },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@types/node": "^22.13.10",
