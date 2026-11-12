@@ -90,7 +90,7 @@ Payslips and pay runs show each employee's wages, tax and super, so grant these 
 
 ##### Choosing an installation route
 
-[`@xeroapi/xero-mcp-server`](https://www.npmjs.com/package/@xeroapi/xero-mcp-server) on npm is the upstream release (0.0.17, published 26 May 2026). It does not carry the changes in this fork, including the error helper that keeps bearer tokens out of tool responses, the annual leave field correction and the tool error flag. Pick the route that matches what you want:
+[`@xeroapi/xero-mcp-server`](https://www.npmjs.com/package/@xeroapi/xero-mcp-server) on npm is the upstream release (0.0.18, published 10 November 2026). It does not carry the changes in this fork, including the error helper that keeps bearer tokens out of tool responses, the annual leave field correction and the tool error flag. Pick the route that matches what you want:
 
 - Upstream release: keep `npx -y @xeroapi/xero-mcp-server@latest` in the examples below.
 - This fork: clone it, run `npm ci && npm run build`, then use `command: "node"` with the absolute path of `dist/index.js`, as in the development example further down.
